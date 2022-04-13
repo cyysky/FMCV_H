@@ -1,0 +1,12 @@
+tensorflow
+tensorflow-hub
+pillow
+pymodbustcp
+pyserial
+wheel
+opencv-contrib-python
+numpy
+matplotlib
+scipy
+pyzbar
+pylibdmtx
