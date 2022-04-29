@@ -9,8 +9,10 @@ def init(s):
     self = s 
 
 def print_config():
-    global config , trigger_type , modbus_type , comport , profile , mode_name , non_stop , images_path , results_path , log_type
+    global config , trigger_type , modbus_type , comport , profile , mode_name , non_stop
     global ai_minimum, train_rotate, train_brightness
+    global reset_log, images_path , results_path , log_type
+    
     comport = config['CONTROL']['comport']
     modbus_ip = config['CONTROL']['modbus_ip']
     modbus_port = config['CONTROL']['modbus_port']
@@ -30,12 +32,15 @@ def print_config():
     train_rotate = config['AI']['train_rotate']
     train_brightness = config['AI']['train_brightness']
     log_type = config['LOG']['type']
+    reset_log = config['LOG']['reset_log']
+    
     
     print(f'Mode Name: {mode_name}')
     print(f'Robot Non Stop: {non_stop}')
     print(f'Log type = {log_type}')
     print(f'Images Log Path: {images_path}')
     print(f'results_path Log Path: {results_path}')
+    print(f'reset_log write log while reset step: {reset_log}')
     print(f'Profile: {profile}')
     print(f'comport: {comport}')
     print(f'modbus_ip: {modbus_ip}')
@@ -111,10 +116,11 @@ except:
     config['MODE']['name'] = "ENGINEER"
     config['MODE']['non_stop'] = "Y"
     
-    config.add_section('LOG')
+    config.add_section('LOG')    
     config['LOG']['type'] = "NORMAL"
     config['LOG']['images_path'] = "LOG/IMAGES"
     config['LOG']['results_path'] = "LOG/RESULTS"
+    config['LOG']['reset_log'] = "N"  #write log while reset
       
     write_config()
     

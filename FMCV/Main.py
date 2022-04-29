@@ -114,7 +114,8 @@ def reset():
     global current_step, results, result_frame, barcode, started, flag_reset
     
     if started:
-        self.Log.write_log()
+        if self.Config.reset_log == "Y":
+            self.Log.write_log()
     
     started = False
     current_step = 0    
@@ -166,6 +167,9 @@ def detect_next(step=None):
                     barcode = str(roi_result.get("CODE"))
         except:
             traceback.print_exc()
+            
+    if not is_pass:
+        self.Com.failed()
             
     if is_pass and step is None: 
         print("Com go next")

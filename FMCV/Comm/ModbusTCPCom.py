@@ -38,6 +38,7 @@ class ModbusTCPThreadJAKA(threading.Thread):
             self.com = ModbusClient(host=host, port=port, unit_id=1, auto_open=True)
         self.flag_next = False
         self.flag_stop = False
+        self.flag_fail = False
         
     def close(self):
         try:
@@ -48,26 +49,48 @@ class ModbusTCPThreadJAKA(threading.Thread):
     def run(self):
         wait_time = 0.025
         self.last_state = False
+        self.last_reset_state = False
         while True: 
-            try:                   
-                regs = self.com.read_discrete_inputs(8, 1)
+            try:
+                regs = self.com.read_discrete_inputs(9, 1) #DO18
+                if regs:
+                    if regs[0] != self.last_reset_state:
+                        self.last_reset_state = regs[0]
+                        if regs[0]:
+                            print("robot request reset")
+                            self.parent.on_callback(self, "RESET")
+                else:
+                    print("Read error")
+                    
+                regs = self.com.read_discrete_inputs(8, 1) #DO17
                 if regs:
                     if regs[0] != self.last_state:
                         self.last_state = regs[0]
                         if regs[0]:
-                            print("trigged")
+                            print("Trigged")
                             self.parent.on_callback(self, "T")
+                        else:
+                            print("Off DI19 DI18")
+                            self.com.write_single_coil(42,0) #DI19
+                            self.com.write_single_coil(40,0) #DI18
                 else:
-                    print("read error")
+                    print("Read error")
+                    
+                if self.flag_fail:
+                    time.sleep(wait_time)
+                    self.com.write_single_coil(42,1) #DI19
+                    self.flag_fail = False
+                    
                 if self.flag_next:    
                     time.sleep(wait_time)
-                    self.com.write_single_coil(40,1)
+                    self.com.write_single_coil(40,1) #DI17
                     self.flag_next = False
-                    self.flag_stop = True
+
                 if self.flag_stop:
                     time.sleep(wait_time)
-                    self.com.write_single_coil(40,0)
+                    self.com.write_single_coil(40,0) #DI18
                     self.flag_stop = False
+                    
             except:
                 print("Modbus Thread Run Exception")
                 traceback.print_exc() 
@@ -80,6 +103,10 @@ class ModbusTCPThreadJAKA(threading.Thread):
 
     def stop(self):   
         self.flag_stop = True
+    
+    def fail(self):
+        self.flag_fail = True
+
             
 class ModbusTCPThreadDOBOT(threading.Thread):
     def __init__(self, parent=None, host="192.168.1.6", port=502):
@@ -139,6 +166,10 @@ class ModbusTCPThreadDOBOT(threading.Thread):
     def stop(self):
         pass
         
+    def fail(self):
+        self.flag_fail = True
+        print("DOBOT fail output")
+            
 if __name__ == '__main__' :
     # import time
     # def callback(t,c):

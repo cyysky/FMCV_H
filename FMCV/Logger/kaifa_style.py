@@ -28,23 +28,20 @@ def write_log():
 
     if str(results_path) != '.':
         os.makedirs(results_path, exist_ok=True)
-        current_datetime = datetime.utcnow() + timedelta(hours=+8)
+        results_file_path = results_path / "{}_{}.csv".format(barcode,log_datetime)
         
-        results_file_path = results_path / "{}_{}.dat".format(barcode, current_datetime.strftime("%Y%m%d_%H%M%S"))
+        overall_result = True
         
-        with open(results_file_path, "w") as file_log:
-            counter = 1
-            file_log.write("V{}={}|".format(counter, barcode))
+        with open(results_file_path, "w") as file_log:    
             
-            counter+= 1
-            file_log.write("V{}={}|".format(counter, "PASS" if s.Main.is_overall_pass() else "FAIL"))
-        
+            file_log.write("Camera,Step,ROI_Name,Type,Result,Aux1,Aux2,Aux3\n")   
+            
             for src_n, src in enumerate(results):     
                 for step_n, step in enumerate(results[src_n]):
-                    for roi_n, roi_result in enumerate(results[src_n][step_n]):                    
-                        counter+= 1
-                        
-                        file_log.write("V{}={}".format(counter,src_n+1))
+                    for roi_n, roi_result in enumerate(results[src_n][step_n]):
+                        #file_log.write("{}".format(barcode))
+                        #file_log.write(",")
+                        file_log.write("{}".format(src_n+1))
                         file_log.write(",")
                         file_log.write("{}".format(step_n+1))
                         file_log.write(",")
@@ -56,6 +53,7 @@ def write_log():
                             state = "PASS"
                         else:
                             state = "FAIL"
+                            overall_result = False                            
                         file_log.write("{}".format(state))
                         file_log.write(",")
                         if roi_result.get("type") == "CNN":
@@ -64,12 +62,11 @@ def write_log():
                             file_log.write("{}".format(roi_result.get("result_score")))
                         if roi_result.get("type") == "QR":
                             file_log.write("{}".format(roi_result.get("CODE")))
-                        file_log.write("|")
+                        file_log.write("\n")
             
-            log_date = current_datetime.strftime("%d/%m/%Y") #https://www.w3schools.com/python/python_datetime.asp
-            log_time = current_datetime.strftime("%H:%M:%S") #https://www.w3schools.com/python/python_datetime.asp
-            file_log.write("DATE={}|TIME={}".format(log_date,log_time))
-
+            
+            file_log.write(",,,RESULT,{},,,\n".format("PASS" if overall_result else "FAIL"))   
+            
     
     if str(images_path) != '.':
         os.makedirs(images_path, exist_ok=True)
@@ -84,4 +81,5 @@ def write_log():
                             if str(images_path) != '.':
                                 cv2.imwrite(str(images_path / "{}_{}_{}_{}.png".format(barcode,f"{src_n+1}'{step_n+1}'{roi_result.get('name')}",state,log_datetime)), roi_result.get('result_image'))
                         except:
-                            traceback.print_exc()
+                            #traceback.print_exc()
+                            pass

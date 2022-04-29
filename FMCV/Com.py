@@ -54,10 +54,10 @@ def failed():
     
     if self.Config.comport != "NONE":        
         serial.write_result(bytes(f'0\n', 'utf8'))
-        print("Serial Next")
-    # if self.Config.modbus_type in ("JAKA","DOBOT"):
-        # modbusTCP.modbus_tcp.go_next()   
-        # print("Modbus Next")
+        print("Serial Fail Sent")
+    if self.Config.modbus_type in ("JAKA","DOBOT"):
+        modbusTCP.modbus_tcp.fail()   
+        print("Modbus Fail Sent")
     
     
 

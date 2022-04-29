@@ -51,6 +51,6 @@ def write_log():
                             state = "FAIL"
                         try:
                             if str(images_path) != '.':
-                                cv2.imwrite(str(images_path / "{}_{}_{}_{}.jpg".format(barcode,f"{src_n+1}'{step_n+1}'{roi_result.get('name')}",state,log_datetime)), roi_result.get('result_image'))
+                                cv2.imwrite(str(images_path / "{}_{}_{}_{}.png".format(barcode,f"{src_n+1}'{step_n+1}'{roi_result.get('name')}",state,log_datetime)), roi_result.get('result_image'))
                         except:
                             traceback.print_exc()

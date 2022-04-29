@@ -2,7 +2,7 @@ import traceback
 import os
 from datetime import datetime,timedelta
 import cv2
-from FMCV.Logger import flex_style, default_style, vs_style
+from FMCV.Logger import flex_style, default_style, vs_style, kaifa_style
 
 def init(s):
     global self
@@ -49,6 +49,10 @@ def write_log():
         if s.Config.log_type == "VS":
             vs_style.init(s)
             vs_style.write_log()
+            
+        if s.Config.log_type == "KAIFA":
+            kaifa_style.init(s)
+            kaifa_style.write_log()
             
         update_total()
         
