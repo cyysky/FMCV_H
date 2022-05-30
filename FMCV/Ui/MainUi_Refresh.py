@@ -41,9 +41,9 @@ def refresh_result_view(pos = -1):
     if pos == -1:
         pos = M.cmb_pos
     M.r_view.viewer.delete("all")
-    M.result_frame.set_result(None)
+    #M.result_frame.set_running()
+    
     try:
-        
         scale = M.r_view.get_scale()
 
         for roi_n, roi in enumerate(self.Main.results[M.cam_pos][pos]): 
@@ -55,7 +55,7 @@ def refresh_result_view(pos = -1):
                 color = 'red'
             M.r_view.viewer.create_rectangle(roi['x1'] * scale, roi['y1'] * scale, roi['x2'] * scale, roi['y2'] * scale , outline=color,  tags=(str(roi_n)))
         
-        M.result_frame.set_result(self.Main.is_overall_pass())
+        #M.result_frame.set_running()
         M.r_view.set_image(self.Main.result_frame[M.cam_pos][pos])
         M.r_view.current_results = self.Main.results[M.cam_pos][pos]
         
@@ -88,8 +88,8 @@ def display_roi_image():
     if M.roi_index > -1:
         roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index]
         if roi.get('img') is not None:
-            print("display image")
-            M.t_view.set_image(roi['img'])
+            #print("display image")
+            M.t_view.image_view.set_image(roi['img'])
     else:
         M.t_view.clear()
 

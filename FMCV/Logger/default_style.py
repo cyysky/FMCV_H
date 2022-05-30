@@ -40,6 +40,10 @@ def write_log():
                             file_log.write("{}".format(roi_result.get("result_score")))
                         if roi_result.get("type") == "QR":
                             file_log.write("{}".format(roi_result.get("CODE")))
+                        if roi_result.get("type") == "FIDUCIAL":
+                            file_log.write("{},".format(roi_result.get("score")))
+                            file_log.write("{},".format(roi_result.get("offset_x")))
+                            file_log.write("{}".format(roi_result.get("offset_y")))
                         file_log.write("\n")
     
     if str(images_path) != '.':

@@ -19,6 +19,7 @@ import copy
 import cv2
 from PIL import Image, ImageTk
 import traceback 
+import time
 
 live = True
 current_step = 0 
@@ -38,10 +39,18 @@ barcode = ""
 
 started = False
 
-def init(s):
-    global self
-    self = s 
+last_roi_state = True
+last_overall_state = True
+continuous_roi_fail_count = 0
+continuous_overall_fail_count = 0 
 
+cycle_start_time =  time.time()
+
+def init(s):
+    global self, start
+    self = s 
+    start = s
+    
 def is_overall_pass():
     is_pass = True
     try:
@@ -63,6 +72,11 @@ def detect(step=None):
     global current_step
     global detected_step
     global barcode
+    global cycle_start_time
+    global last_overall_state, continuous_overall_fail_count, continuous_roi_fail_count
+    
+    if current_step == 0:
+        cycle_start_time =  time.time()
 
     if step is not None:
         print("current_step to {}".format(step))
@@ -80,17 +94,24 @@ def detect(step=None):
         print(self.MainUi.barcode_entry.get())
         barcode = self.MainUi.barcode_entry.get()
     
-    detect_next_results = detect_next(step)
+    detect_next_results = start_detect(step)
     print(f"detect_next_results {detect_next_results}")
+    
     if detect_next_results and step is None:
-        next_step()
-        
+        next_step() #current_step increment
+    
 
+        #print(">>{} {}".format(continuous_roi_fail_count, continuous_overall_fail_count))
+    
+#current_step increment logic
 def next_step():
-    global detected_step, started
+    global last_overall_state, continuous_overall_fail_count   
+    global detected_step
+    global started
     global current_step
     global flag_reset
     global self
+    global barcode
 
     if flag_reset:
         print("reseting steps")
@@ -104,11 +125,26 @@ def next_step():
 
     if current_step > len(results[0]) - 1:
         current_step = 0
+        
+        update_total()
+        
+        start.MainUi.result_frame.set_result(is_overall_pass())
+        
+        #Continueous fail detection    
+        overall_state = is_overall_pass()
+        if not overall_state:
+            if last_overall_state == False:
+                continuous_overall_fail_count += 1
+            else:
+                continuous_overall_fail_count = 0
+        last_overall_state = overall_state
+        
         self.Log.write_log()
+        
         barcode = ""
         self.MainUi.barcode_entry.delete(0, 'end')
         
-    print("step increased to current_step {} detected_step {}".format(current_step, detected_step))
+    print("current_step {}".format(current_step))
         
 def reset():
     global current_step, results, result_frame, barcode, started, flag_reset
@@ -149,31 +185,60 @@ def update_view():
     if live:
         self.MainUi.view.after(66, update_view)
 
-def detect_next(step=None):
+def start_detect(step=None):
     global current_step, results, result_frame, barcode
+    global last_roi_state, continuous_roi_fail_count
+    global continuous_overall_fail_count, last_overall_state
+    
     frames = self.Camera.get_image()
     
     is_pass = True
     for src_n, src in enumerate(results):
         frame = copy.deepcopy(list(frames.values())[src_n])
         result_frame[src_n][current_step] = frame
-        
+        print(frame.shape)
         try:
             for roi_n, roi_result in enumerate(results[src_n][current_step]):
                 roi_result = self.Process.execute(frame, src_n, current_step, roi_n)
+                
                 if not roi_result.get('PASS'):
                     is_pass = False
+                    
+                    #Continueous fail detection    
+                    if last_roi_state == False:
+                        continuous_roi_fail_count += 1
+                    else:
+                        continuous_roi_fail_count = 0
+                last_roi_state = roi_result.get('PASS')
+                
                 if roi_result['type'] == "QR":
                     barcode = str(roi_result.get("CODE"))
+
         except:
             traceback.print_exc()
-            
+    
     if not is_pass:
         self.Com.failed()
+    
+    failed_3x = False    
+    if start.Config.alarm_if_fail_3x:
+        if continuous_roi_fail_count >= 2 :
+            print("ROI Failed equal or more then 3 times")
+                
+        if continuous_overall_fail_count >= 2:
+            print("Overall Failed equal or more then 3 times")
             
+            if not start.MainUi.ask_reset_continuous_fail_alarm():
+                last_overall_state = True
+                continuous_overall_fail_count = 0
+                failed_3x = True
+
     if is_pass and step is None: 
         print("Com go next")
         self.Com.go_next()
+    elif failed_3x:
+        self.Com.failed()
+        #self.Com.alarm()
     elif self.Config.non_stop == "Y":
         print("Non Stop Com go next")
         is_pass = True
@@ -182,6 +247,20 @@ def detect_next(step=None):
         print("Com Failed")
         self.Com.failed()
         self.Log.write_log()
+        
+    start.MainUi.result_frame.set_running()
     
     return is_pass    
  
+def reset_total_count():
+    start.Config.class_total.update({"PASS":0,"FAIL":0})
+    
+def update_total():
+    total_pass = start.Config.class_total.get("PASS")
+    total_fail = start.Config.class_total.get("FAIL")
+    
+    if is_overall_pass():
+        total_pass = total_pass + 1
+    else :
+        total_fail = total_fail + 1
+    start.Config.class_total.update({"PASS":total_pass,"FAIL":total_fail})

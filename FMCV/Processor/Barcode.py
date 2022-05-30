@@ -23,6 +23,7 @@ def process_barcode(self, result, frm, src_n, step_n, roi_n):
     y2 = roi['y2'] + m
     cropped = frm[y1:y2,x1:x2]
     
+    result.update({"CODE":""})
     result.update({'result_image':copy.deepcopy(cropped)})
     
     is_pass = False
@@ -53,9 +54,25 @@ def process_barcode(self, result, frm, src_n, step_n, roi_n):
             print('QRCode not detected')
     
     # Workable code, just slow
-    if not result.get("PASS"):
+    
+    if not is_pass:
+        print("Checking 2d matrix")
         if 'dm_decode' in globals():
-            detectedBarcodes = dm_decode(cropped,max_count=1)
+        
+            #cropped = cv2.imread("123.png")
+            #cv2.imshow('image', cropped)
+            #cv2.waitKey(0)
+            
+            scale_percent = 30
+            width = int(cropped.shape[1] * scale_percent / 100)
+            height = int(cropped.shape[0] * scale_percent / 100)
+            dsize = (width, height)
+            
+            resized = cv2.resize(cropped, dsize, interpolation = cv2.INTER_AREA)
+            if len(resized.shape) ==3:
+                resized = cv2.cvtColor(resized, cv2.COLOR_BGR2GRAY)
+            
+            detectedBarcodes = dm_decode(resized,max_count=1,threshold=50)
             print(detectedBarcodes)
             if not detectedBarcodes:
                 #result.update({"PASS":False})

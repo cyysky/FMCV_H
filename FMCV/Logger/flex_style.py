@@ -1,6 +1,7 @@
 import os
 import traceback
 import cv2
+import time
 
 barcode = None
 results_path = None
@@ -9,10 +10,28 @@ log_datetime = None
 results = None
 result_frame = None
 
+def init(start):
+    global s
+    global barcode, mes_path, results_path, images_path, log_datetime, results, result_frame
+    
+    s = start
+    
+    barcode = s.Log.barcode
+    mes_path = s.Log.mes_path
+    results_path = s.Log.results_path
+    images_path = s.Log.images_path
+    log_datetime = s.Log.log_datetime
+    results = s.Log.results
+    result_frame = s.Log.result_frame
+    
 def write_log():
     if str(results_path) != '.':
         os.makedirs(results_path, exist_ok=True)
         results_file_path = results_path / "{}_{}.txt".format(barcode,log_datetime)
+        
+        cycle_time = time.time()-s.Main.cycle_start_time
+        
+        overall_result = True
         
         with open(results_file_path, "w") as file_log:        
             for src_n, src in enumerate(results):     
@@ -30,6 +49,7 @@ def write_log():
                             state = "PASS"
                         else:
                             state = "FAIL"
+                            overall_result = False
                         file_log.write("{}".format(state))
                         file_log.write("\t")
                         if roi_result.get("type") == "CNN":
@@ -38,7 +58,13 @@ def write_log():
                             file_log.write("{}".format(roi_result.get("result_score")))
                         if roi_result.get("type") == "QR":
                             file_log.write("{}".format(roi_result.get("CODE")))
+                        if roi_result.get("type") == "FIDUCIAL":
+                            file_log.write("{}\t".format(roi_result.get("score")))
+                            file_log.write("{}\t".format(roi_result.get("offset_x")))
+                            file_log.write("{}".format(roi_result.get("offset_y")))
                         file_log.write("\n")
+                        
+            file_log.write("\t\t\tRESULT\t{}\tCYCLE TIME\t{}\t\n".format("PASS" if overall_result else "FAIL",cycle_time))
     
     if str(images_path) != '.':
         os.makedirs(images_path, exist_ok=True)

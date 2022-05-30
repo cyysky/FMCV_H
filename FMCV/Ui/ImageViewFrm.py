@@ -27,7 +27,7 @@ class ImageView(Frame):
         self.image = None
         self.scale = 1
     
-        self.scale_by = "w"
+        self.scale_by = "fit"
     
     def get_scale(self):
         if self.image is not None:  
@@ -53,12 +53,18 @@ class ImageView(Frame):
                 if self.viewer.winfo_width() > 1:
                     if self.scale_by == 'w':
                         self.scale = self.viewer.winfo_width()/image_width
-                        if not self.scale == 1:
-                            tk_image = self.image.resize((int(image_width*self.scale),int(image_height*self.scale)))
+                        
                     if self.scale_by == 'h':
                         self.scale = self.viewer.winfo_height()/image_height
-                        if not self.scale == 1:
-                            tk_image = self.image.resize((int(image_width*self.scale),int(image_height*self.scale)))
+                        
+                    if self.scale_by == 'fit':
+                        if image_height >= image_width:
+                            self.scale = self.viewer.winfo_height()/image_height
+                        else:
+                            self.scale = self.viewer.winfo_width()/image_width
+                            
+                    if not self.scale == 1:
+                        tk_image = self.image.resize((int(image_width*self.scale),int(image_height*self.scale)))
                 else:
                     tk_image = self.image
                 self.viewer.image = ImageTk.PhotoImage(tk_image)
@@ -73,28 +79,6 @@ class ImageView(Frame):
     def lower_image_in_viewer(self):
         if self.id_picture > -1:    
             self.viewer.tag_lower(self.id_picture)
-    # def get_items(self,x,y):
-        # items =[]
-        # if self.df_result is not None:
-            # xy = (self.viewer.canvasx(xy[0]), self.viewer.canvasy(xy[1]))
-            # #for key,val in self.editorItems.items():
-            # #print(self.editorItems[(self.editorItems["profile"]==self.combo_profile.get())&(self.editorItems['camera']==int(self.combo_camera.get()))&(self.editorItems['editorItemId']>-1)])
-            # for i,row in self.df_result[self.df_result['editorItemId']>-1].iterrows():
-                # val = row['editorItemId']
-                # coords = self.viewer.coords(val) #val must be INT32
-                # #print("{}   {}   {}".format(row['name'],val,coords))
-                # if self.in_region(xy,self.viewer.coords(val)):
-                    # #print("Returned {}".format(val))
-                    # items.append(val)            
-    # return items   
-    
-    # def in_region(self,xy,coords):
-        # #print("{} {}".format(xy,coords))
-        # if (x>=coords[0] and y<=coords[2] and
-            # xy[1]>=coords[1] and y<=coords[3]):
-                # return True
-        # else:
-            # return False        
             
     def clear(self):
         if self.id_picture > -1:

@@ -76,6 +76,9 @@ class ModbusTCPThreadJAKA(threading.Thread):
                 else:
                     print("Read error")
                     
+
+
+                
                 if self.flag_fail:
                     time.sleep(wait_time)
                     self.com.write_single_coil(42,1) #DI19
@@ -97,6 +100,23 @@ class ModbusTCPThreadJAKA(threading.Thread):
                 time.sleep(1)
             time.sleep(wait_time)
     
+    def fiducial_offset(self,x,y):
+        print("update jaka offset {} {}".format(x,y))
+        
+        self.com.write_single_register(100, 0) #AI3
+        self.com.write_single_register(101, 0) #AI4
+        self.com.write_single_register(102, 0) #AI5
+        self.com.write_single_register(103, 0) #AI6
+        
+        if x>=0:
+            self.com.write_single_register(100, x) #AI3
+        else:
+            self.com.write_single_register(101, abs(x)) #AI4
+            
+        if y>=0:
+            self.com.write_single_register(102, y) #AI5
+        else:
+            self.com.write_single_register(103, abs(y)) #AI6
             
     def go_next(self):
         self.flag_next = True

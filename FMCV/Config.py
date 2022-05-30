@@ -11,7 +11,12 @@ def init(s):
 def print_config():
     global config , trigger_type , modbus_type , comport , profile , mode_name , non_stop
     global ai_minimum, train_rotate, train_brightness
-    global reset_log, images_path , results_path , log_type
+    global reset_log, images_path , results_path , log_type, mes_path
+    global alarm_if_fail_3x
+    global tester_id
+    global version
+    
+    version = "20220509"
     
     comport = config['CONTROL']['comport']
     modbus_ip = config['CONTROL']['modbus_ip']
@@ -29,17 +34,23 @@ def print_config():
     non_stop = config['MODE']['non_stop']
     images_path = Path(config['LOG']['images_path'])
     results_path = Path(config['LOG']['results_path'])
+    mes_path = Path(config['LOG']['mes_path'])
     train_rotate = config['AI']['train_rotate']
     train_brightness = config['AI']['train_brightness']
     log_type = config['LOG']['type']
     reset_log = config['LOG']['reset_log']
+    alarm_if_fail_3x = True if config['MODE']['alarm_if_fail_3x'] == "Y" else False
+    tester_id = config['LOG']['tester_id']
     
     
+    print(f'Tester ID: {tester_id}')
     print(f'Mode Name: {mode_name}')
     print(f'Robot Non Stop: {non_stop}')
+    print(f'Alarm if fail 3 times: {alarm_if_fail_3x}')
     print(f'Log type = {log_type}')
     print(f'Images Log Path: {images_path}')
     print(f'results_path Log Path: {results_path}')
+    print(f'MES File Path: {mes_path}')
     print(f'reset_log write log while reset step: {reset_log}')
     print(f'Profile: {profile}')
     print(f'comport: {comport}')
@@ -55,7 +66,6 @@ def print_config():
     print(f'Modbus Type : {modbus_type}')
     print(f'Camera Name : {camera_name}')
     print(f'cuda_visible_devices : {cuda_visible_devices}')
-    
     
 def write_config():
     global config
@@ -115,28 +125,46 @@ except:
     
     config['MODE']['name'] = "ENGINEER"
     config['MODE']['non_stop'] = "Y"
+    config['MODE']['alarm_if_fail_3x'] = "N"
+    
     
     config.add_section('LOG')    
     config['LOG']['type'] = "NORMAL"
     config['LOG']['images_path'] = "LOG/IMAGES"
     config['LOG']['results_path'] = "LOG/RESULTS"
     config['LOG']['reset_log'] = "N"  #write log while reset
+    config['LOG']['mes_path'] = "LOG/MES"
+    config['LOG']['tester_id'] = "ASVI_1"
       
     write_config()
     
     print_config()
-    
 
+# initialize total counts    
 class_total = {"PASS":0,"FAIL":0}
-
 try:
     with open(os.path.join("Profile",profile,'class_total.json')) as json_file:
         class_total = json.load(json_file)
 except:
     traceback.print_exc()
+    os.makedirs(os.path.join("Profile",profile), exist_ok=True) 
     with open(os.path.join("Profile",profile,'class_total.json'), 'w') as fp:
         json.dump(class_total, fp, sort_keys=True, indent=4)
-        
+# write total counts
 def write_total():
     with open(os.path.join("Profile",profile,'class_total.json'), 'w') as fp:
         json.dump(class_total, fp, sort_keys=True, indent=4)
+        
+# initialize fiducial offsets
+#fiducial_offset = {}
+#try:
+#    with open(os.path.join("Profile",profile,'fiducial_offset.json')) as json_file:
+#        fiducial_offset = json.load(json_file)
+#except:
+#    traceback.print_exc()
+#    with open(os.path.join("Profile",profile,'fiducial_offset.json'), 'w') as fp:
+#        json.dump(fiducial_offset, fp, sort_keys=True, indent=4)
+#        
+#def write_fiducial_offset():
+#    with open(os.path.join("Profile",profile,'fiducial_offset.json'), 'w') as fp:
+#        json.dump(fiducial_offset, fp, sort_keys=True, indent=4)

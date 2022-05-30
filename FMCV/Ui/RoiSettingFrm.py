@@ -7,6 +7,8 @@ import copy
 from FMCV.Ui.ScrollableFrm  import ScrollableFrame
 from FMCV import Util
 from FMCV.Ui.ImageViewFrm import ImageView
+from FMCV.Ui.RoiSettingCnnFrm import ROISettingCNNFrame
+from FMCV.Ui.RoiSettingFiducialFrm import ROISettingFiducialFrame
 
 class ROISettingFrame(ttk.Frame):
 
@@ -28,44 +30,21 @@ class ROISettingFrame(ttk.Frame):
         self.btn_r_image_update = Button(setting,text ="Roi Image Update")
         self.btn_r_image_update.pack(side=TOP)
         self.btn_r_image_update.configure(command=self.update_roi_image) 
-
-        self.folder_cmb = folder_cmb = ttk.Combobox(setting)
-        folder_cmb['values'] = tuple(start.Profile.get_image_folders_list())
-
-        btn_open_folder = Button(setting,text ="Open Folder", command = lambda : start.ActionUi.open_folder(folder_cmb.get()))
-        btn_open_folder.pack(side=TOP)
-
-        Label(setting, text = 'Folder/Class').pack()
-        btn_save_roi = Button(setting,text ="Save ROI Image To Folder")
-        btn_save_roi.pack(side=TOP)
-        btn_save_roi.configure(command=self.save_roi_image)   
-        folder_cmb.pack()
-        
-
-        btn_set_class = Button(setting,text ="Set class")
-        btn_set_class.pack(side=TOP)
-        btn_set_class.configure(command=self.update_roi_class)   
-        self.lbl_class = Label(setting, text = 'Class:')
-        self.lbl_class.pack()
-        
-        self.ai_minimal = ai_minimal = Entry(setting)
-        ai_minimal.pack()
-        
-        
         
         Label(setting, text = 'ROI TYPE').pack()
         self.roi_cmb = roi_cmb = ttk.Combobox(setting,state="readonly")
-        roi_cmb['values'] = ("CNN","CON","ANO","QR")
+        roi_cmb['values'] = ("CNN","CON","FIDUCIAL","ANO","QR")
         roi_cmb.pack()
         roi_cmb.current(0)
-        roi_cmb.bind("<<ComboboxSelected>>", self.roi_cmb_callback)
+        roi_cmb.bind("<<ComboboxSelected>>", self.roi_type_cmb_callback)
         
-        Label(setting, text = 'Train CNN').pack()
-        train_btn = Button(setting, text ="Train", command = start.ActionUi.cnn_train)
-        train_btn.pack(side=TOP)
+        #CNN Frame
+        self.cnn_frame = cnn_frame = ROISettingCNNFrame(self.start,setting)
+        
+        #Fiducial Frame
+        self.fiducial_frame = cnn_frame = ROISettingFiducialFrame(self.start,setting)
         
         self.image_view = ImageView(self, relief = GROOVE, borderwidth = 3)
-        self.image_view.scale_by = "h"
         
         m1.add(self.image_view, weight = 10)
         m1.add(self.setting_frame, weight = 5)
@@ -76,36 +55,39 @@ class ROISettingFrame(ttk.Frame):
     
         self.scale_by = "w"
         
-        self.viewer = self.image_view.viewer
+        #self.viewer = self.image_view.viewer
         
-        
+        #Disable button when is not ENGINEERING mode
         if start.Config.mode_name != "ENGINEER":
             self.btn_r_image_update["state"] = DISABLED
-            btn_save_roi["state"] = DISABLED
-            btn_set_class["state"] = DISABLED
-            train_btn["state"] = DISABLED
-            ai_minimal["state"] = DISABLED
             
-        ai_minimal.bind('<Return>',self.ai_minimal_entry_handler)
-
-    def ai_minimal_entry_handler(*args):
-        print(args)
-        self.ai_minimal.select_range(0, 'end')
-        
-    def update_roi_class(self):
-        roi_index = self.start.MainUi.roi_index
-        if  roi_index > -1:
-            self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index].update({"class":self.folder_cmb.get()})
-            #self.start.MainUi_Refresh.refresh_result_view()
-            self.refresh_roi_settings()
-    
-    def roi_cmb_callback(self,event):
+    def roi_type_cmb_callback(self,event):
         if self.start.Config.mode_name == "ENGINEER":
             if self.start.MainUi.roi_index > -1:
                 self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index].update({"type":event.widget.get()})
                 #self.start.MainUi_Refresh.refresh_result_view()
+                
+                self.start.Main.flag_reset = True
+                self.start.Profile.flag_save = True
         else:
             print("please enable engineer mode")
+        self.display_roi_type_widget()
+            
+    def clear_roi_type_widget(self):
+        self.cnn_frame.pack_forget()
+        self.fiducial_frame.pack_forget()
+
+    def display_roi_type_widget(self):        
+        self.clear_roi_type_widget()
+        if self.start.MainUi.roi_index > -1:
+            roi_type = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index].get('type')
+            if roi_type == "CNN":
+                self.cnn_frame.pack(fill=BOTH, expand=True)
+                self.cnn_frame.refresh()
+            if roi_type == "FIDUCIAL":
+                self.fiducial_frame.pack(fill=BOTH, expand=True)
+                self.fiducial_frame.refresh()
+            
             
     def refresh_roi_settings(self):
         if self.start.MainUi.roi_index > -1 :
@@ -113,33 +95,17 @@ class ROISettingFrame(ttk.Frame):
             roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index]
             
             self.lbl_roi_name.config(text = f"ROI Name : {roi.get('name')}")
+            
             for n, text in enumerate(self.roi_cmb['values']):
                 if text == roi.get("type"):
                     self.roi_cmb.current(n)
-            self.lbl_class.config(text = f"Class : {roi.get('class')}")
-            
-            self.ai_minimal.delete(0, END)
-            self.ai_minimal.insert(0, str(roi.get("minimal")))
+                    
+            self.display_roi_type_widget()
         else:
             self.lbl_roi_name.config(text = "N/A")
-            self.lbl_class.config(text = f"Class :")
             
-    def save_roi_image(self):
-        roi_index = self.start.MainUi.roi_index
-        print(roi_index)
-        if roi_index > -1:
-            self.start.Profile.create_image_folder(self.folder_cmb.get())
-            self.folder_cmb['values'] = tuple(self.start.Profile.get_image_folders_list())
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index]   
-            x1 = roi['x1'] 
-            y1 = roi['y1'] 
-            x2 = roi['x2'] 
-            y2 = roi['y2']
-            frame = list(self.start.Camera.get_image().values())[self.start.MainUi.cam_pos]
-            pth = self.start.Profile.write_image(self.folder_cmb.get(), copy.deepcopy(frame[y1:y2,x1:x2]))
-            print(self.folder_cmb.get())
-            self.start.MainUi.write(f'ROI Image Saved to {pth}')
 
+            
     def update_roi_image(self):
         roi_index = self.start.MainUi.roi_index
         if roi_index > -1:
@@ -151,46 +117,7 @@ class ROISettingFrame(ttk.Frame):
             y2 = roi['y2']
             roi.update({"image":base64.b64encode(cv2.imencode('.png',copy.deepcopy(frame[y1:y2,x1:x2]))[1]).decode()})
             roi.update({'img':copy.deepcopy(frame[y1:y2,x1:x2])})
-            self.set_image(roi['img'])
-            self.start.Main.reset()
+            self.image_view.set_image(roi['img'])
+            self.start.Main.flag_reset = True
         else:
-            self.clear()
-
-    def get_scale(self):
-        if self.image is not None:  
-            image_width,image_height = self.image.size
-            if self.viewer.winfo_width() > 1:
-                self.scale = self.viewer.winfo_width()/image_width
-        return self.scale
-    
-    def set_image(self,image,scale=1):
-        self.scale = scale
-        img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        self.image = Image.fromarray(img)
-        
-        if self.id_picture > -1:
-            self.viewer.image = None
-            self.viewer.delete(self.id_picture)
-
-        image_width,image_height = self.image.size
-        
-        if self.viewer.winfo_width() > 1:
-            if self.scale_by == 'w':
-                self.scale = self.viewer.winfo_width()/image_width
-                if not self.scale == 1:
-                    tk_image = self.image.resize((int(image_width*self.scale),int(image_height*self.scale)))
-            if self.scale_by == 'h':
-                self.scale = self.viewer.winfo_height()/image_height
-                if not self.scale == 1:
-                    tk_image = self.image.resize((int(image_width*self.scale),int(image_height*self.scale)))
-        else:
-            tk_image = self.image
-        self.viewer.image = ImageTk.PhotoImage(tk_image)
-        self.id_picture = self.viewer.create_image(0, 0, image=self.viewer.image, anchor='nw')
-        self.viewer.tag_lower(self.id_picture)
-        self.viewer.config(scrollregion=self.viewer.bbox('all'))
-        
-    def clear(self):
-        if self.id_picture > -1:
-            self.viewer.image = None
-            self.viewer.delete(self.id_picture)
+            self.image_view.clear()

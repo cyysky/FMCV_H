@@ -2,6 +2,7 @@ import os
 from tkinter import *
 from tkinter import ttk
 from tkinter import messagebox
+from tkinter.messagebox import askokcancel, showinfo, WARNING
 from FMCV.Ui.ImageViewFrm import ImageView
 from FMCV.Ui.ResultsFrm import ResultsFrame
 from FMCV.Ui.ScrollableFrm  import ScrollableFrame
@@ -72,14 +73,13 @@ def init(s):
     
     top.title("FMCV H Profile:{}".format(self.Config.profile))
     
-    statusbar = Label(top, text="FMCV H 20220220 22:22", bd=1, relief=SUNKEN, anchor=W)
+    statusbar = Label(top, text="FMCV H {}".format(start.Config.version), bd=1, relief=SUNKEN, anchor=W)
     statusbar.pack(side=BOTTOM, fill=X)
     
     m1 = ttk.PanedWindow(top, orient=HORIZONTAL)
     m1.pack(fill=BOTH, expand=True)
     
     paned_left = ttk.PanedWindow(m1, orient=HORIZONTAL)
-    #paned_left.pack(fill=BOTH, expand=True)
     
     cf = ControlFrame(self,paned_left)
     Lb1 = cf.Lb1
@@ -99,9 +99,8 @@ def init(s):
     btn_remove_source = cf.btn_remove_source
     steps_lbl = cf.steps_lbl
     barcode_entry = cf.barcode_entry
-    
 
-    
+
     frm_cams = CamerasFrame(start, paned_left)
 
     m2 = ttk.PanedWindow(m1, orient=VERTICAL)
@@ -116,7 +115,6 @@ def init(s):
     m3.add(r_view, weight=1)
     
     t_view = ROISettingFrame(self,m4)
-    t_view.scale_by = "h"
 
     result_frame = ResultsFrame(start,m4)
     
@@ -196,3 +194,12 @@ def update_source(frames):
         view.set_image(list(frames.values())[cam_pos])
     except:
         traceback.print_exc()
+        
+def ask_reset_continuous_fail_alarm():
+    answer = askokcancel(title='Alert',
+        message='Fail 3 times, still continue?',
+        icon=WARNING)
+    return answer
+        # showinfo(
+            # title='Deletion Status',
+            # message='The data is deleted successfully')

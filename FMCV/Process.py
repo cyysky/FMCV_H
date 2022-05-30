@@ -20,15 +20,16 @@ import copy
 import traceback
 
 from FMCV.Processor import Barcode
+from FMCV.Processor import Fiducial
     
 
 def init(s):
-    global self
-    self = s 
+    global start
+    start = s 
 
 def execute(frm, src_n,step_n,roi_n):
     h,w = frm.shape[:2]
-    roi = self.Main.results[src_n][step_n][roi_n]
+    roi = start.Main.results[src_n][step_n][roi_n]
     result = roi
     
     if roi['type'] == "CNN":
@@ -47,18 +48,18 @@ def execute(frm, src_n,step_n,roi_n):
             if x2 > w : x2 = w 
             if y2 > h : y2 = h
 
-            res,top_left,bottom_right,top_val,cropped = self.Cv.match_template(roi['img'],frm[y1:y2,x1:x2])
+            res,top_left,bottom_right,top_val,cropped = start.Cv.match_template(roi['img'],frm[y1:y2,x1:x2])
         else:
             cropped = frm[y1:y2,x1:x2]
             
         resized = cv2.resize(cropped,(224,224))
         scaled_im = cv2.cvtColor(resized, cv2.COLOR_BGR2RGB)
         scaled_im = scaled_im * (1./255) 
-        classify,score = self.CNN.predict("go",scaled_im)
-        result_name = self.CNN.get_class_name(classify)
+        classify,score = start.CNN.predict("go",scaled_im)
+        result_name = start.CNN.get_class_name(classify)
                 
         if roi["class"] == result_name :
-            if score < self.Config.ai_minimum:
+            if score < start.Config.ai_minimum:
                 result.update({"PASS":False})
             else:
                 result.update({"PASS":True})
@@ -71,6 +72,9 @@ def execute(frm, src_n,step_n,roi_n):
         print(f'{roi["name"]} {result_name}:{score}')
         
     if roi['type'] == "QR":
-        result = Barcode.process_barcode(self, result, frm, src_n, step_n, roi_n)
+        result = Barcode.process_barcode(start, result, frm, src_n, step_n, roi_n)
+    
+    if roi['type'] == "FIDUCIAL":
+        result = Fiducial.process_fiducial(start, result, frm, src_n, step_n, roi_n)
         
     return result

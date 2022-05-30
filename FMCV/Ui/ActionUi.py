@@ -49,7 +49,7 @@ def open_folder(folder_name):
     webbrowser.open(pth)
     
 def refresh_main_ui():
-    self.MainUi.steps_lbl.config(text = "Steps = {}".format(self.Main.detected_step + 1))
+    self.MainUi.steps_lbl.config(text = "Steps = {}".format(self.Main.current_step + 1))
     self.MainUi.cmb.current(self.Main.detected_step)
     self.MainUi.cmb_pos = self.Main.detected_step
     self.MainUi_Refresh.refresh_listbox(self.Main.detected_step)

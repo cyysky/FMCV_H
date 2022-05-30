@@ -36,8 +36,6 @@ def init(s):
         except:
             traceback.print_exc()
     
-
-    
 def go_next():
     global self, modbusTCP, serial
     
@@ -59,6 +57,15 @@ def failed():
         modbusTCP.modbus_tcp.fail()   
         print("Modbus Fail Sent")
     
-    
+def alarm():
+    failed()
 
+def update_offset(offset):
+    print("Comm offset")
+    if offset.get("x") is not None and offset.get("y") is not None:
+        if self.Config.modbus_type in ("JAKA"):
+            print("update offset")
+            x = offset.get("x")
+            y = offset.get("y")
+            modbusTCP.modbus_tcp.fiducial_offset(x,y)
     

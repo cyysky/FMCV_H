@@ -46,6 +46,12 @@ class ResultsFrame(ttk.Frame):
         
         self.update_total()
         
+        self.btn_reset_total_count = btn_reset_total_count = Button(content,text ="Reset Total Count")
+        btn_reset_total_count.pack()
+        btn_reset_total_count.configure(command=self.reset_total_count)
+
+
+        
         Label(content, text = 'Folder').pack()
         self.folder_cmb = folder_cmb = ttk.Combobox(content)
         folder_cmb['values'] = tuple(start.Profile.get_image_folders_list())
@@ -99,9 +105,15 @@ class ResultsFrame(ttk.Frame):
                 color = 'red'
                 msg = 'FAIL'
             self.lbl_result.config(bg=color,text=msg)
+            
+    def set_running(self):
+        self.lbl_result.config(bg='yellow',text="Running")
         
     def update_total(self):
         total_pass = self.start.Config.class_total.get("PASS")
         total_fail = self.start.Config.class_total.get("FAIL")
         self.lbl_stat.config(text = f"Total PASS : {total_pass}\nTotal FAIL : {total_fail}")
-     
+        
+    def reset_total_count(self):
+        self.start.Main.reset_total_count()
+        self.update_total()
