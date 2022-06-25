@@ -67,7 +67,7 @@ def is_overall_pass():
         pass
     return is_pass
 
-def detect(step=None):
+def detect(step=None,SN=""):
     global flag_reset, started
     global current_step
     global detected_step
@@ -93,6 +93,11 @@ def detect(step=None):
     if self.MainUi.barcode_entry.get() != "":
         print(self.MainUi.barcode_entry.get())
         barcode = self.MainUi.barcode_entry.get()
+    
+    if SN != "":
+        barcode = SN
+        print(f'Incoming {barcode}')
+        
     
     detect_next_results = start_detect(step)
     print(f"detect_next_results {detect_next_results}")
@@ -138,11 +143,12 @@ def next_step():
             else:
                 continuous_overall_fail_count = 0
         last_overall_state = overall_state
-        
+        print(f'the barcode is {barcode}')
         self.Log.write_log()
         
         barcode = ""
         self.MainUi.barcode_entry.delete(0, 'end')
+        
         
     print("current_step {}".format(current_step))
         
@@ -190,6 +196,8 @@ def start_detect(step=None):
     global last_roi_state, continuous_roi_fail_count
     global continuous_overall_fail_count, last_overall_state
     
+    start.MainUi.result_frame.set_running()
+    
     frames = self.Camera.get_image()
     
     is_pass = True
@@ -217,8 +225,8 @@ def start_detect(step=None):
         except:
             traceback.print_exc()
     
-    if not is_pass:
-        self.Com.failed()
+    #if not is_pass:
+    #    self.Com.failed()
     
     failed_3x = False    
     if start.Config.alarm_if_fail_3x:
@@ -247,8 +255,12 @@ def start_detect(step=None):
         print("Com Failed")
         self.Com.failed()
         self.Log.write_log()
-        
-    start.MainUi.result_frame.set_running()
+        #start.MainUi.result_frame.set_result(is_overall_pass())
+
+        if len(results[0]) == 1: # this is a hack for single step application on fail condition to proceed next step when fail
+            is_pass = True 
+            
+
     
     return is_pass    
  

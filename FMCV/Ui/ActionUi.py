@@ -24,11 +24,18 @@ def skip_step():
     print("Skip Step")
     self.Main.next_step()
     refresh_main_ui()
-    
+
 def detect():
     print("detect by step")
     print("cmb.current() {} detected_step{}".format(self.MainUi.cmb.current(),self.Main.detected_step))
     self.Main.detect()
+    refresh_main_ui()
+    self.MainUi.write('Current Detection Step is {}'.format(self.Main.detected_step))
+
+def detect(SN=""):
+    print("detect by step")
+    print("cmb.current() {} detected_step{}".format(self.MainUi.cmb.current(),self.Main.detected_step))
+    self.Main.detect(SN=SN)
     refresh_main_ui()
     self.MainUi.write('Current Detection Step is {}'.format(self.Main.detected_step))
     

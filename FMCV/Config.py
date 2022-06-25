@@ -4,6 +4,8 @@ import os
 from pathlib import Path
 import json
 
+version = "20220604"
+
 def init(s):
     global self
     self = s 
@@ -11,13 +13,12 @@ def init(s):
 def print_config():
     global config , trigger_type , modbus_type , comport , profile , mode_name , non_stop
     global ai_minimum, train_rotate, train_brightness
-    global reset_log, images_path , results_path , log_type, mes_path
+    global reset_log, images_path , results_path , log_type, mes_path, backup_path
     global alarm_if_fail_3x
     global tester_id
     global version
-    
-    version = "20220509"
-    
+    global mes_connect_type,mes_connect_path
+
     comport = config['CONTROL']['comport']
     modbus_ip = config['CONTROL']['modbus_ip']
     modbus_port = config['CONTROL']['modbus_port']
@@ -35,12 +36,15 @@ def print_config():
     images_path = Path(config['LOG']['images_path'])
     results_path = Path(config['LOG']['results_path'])
     mes_path = Path(config['LOG']['mes_path'])
+    mes_connect_path = Path(config['CONNECT']['mes_path'])
+    mes_connect_type = config['CONNECT']['mes_type']
     train_rotate = config['AI']['train_rotate']
     train_brightness = config['AI']['train_brightness']
     log_type = config['LOG']['type']
     reset_log = config['LOG']['reset_log']
     alarm_if_fail_3x = True if config['MODE']['alarm_if_fail_3x'] == "Y" else False
     tester_id = config['LOG']['tester_id']
+    backup_path = Path(config['LOG']['backup_path'])
     
     
     print(f'Tester ID: {tester_id}')
@@ -50,8 +54,11 @@ def print_config():
     print(f'Log type = {log_type}')
     print(f'Images Log Path: {images_path}')
     print(f'results_path Log Path: {results_path}')
-    print(f'MES File Path: {mes_path}')
-    print(f'reset_log write log while reset step: {reset_log}')
+    print(f'MES Log File Path: {mes_path}')
+    print(f'MES Connect Type: {mes_connect_type}')
+    print(f'MES Connect File Path: {mes_connect_path}')
+    print(f'backup_path : {backup_path}')
+    print(f'Write reset log while step rest: {reset_log}')
     print(f'Profile: {profile}')
     print(f'comport: {comport}')
     print(f'modbus_ip: {modbus_ip}')
@@ -89,52 +96,66 @@ except:
     
     config = configparser.ConfigParser()
     
+    
     config.add_section('PROFILE')
     config['PROFILE']['name'] = 'default'
-
+    
+    
     config.add_section('CONTROL')
-
     config['CONTROL']['comport'] = 'NONE'
     config['CONTROL']['modbus_ip'] = 'NONE'
     config['CONTROL']['modbus_port'] = '502'
     config['CONTROL']['modbus_type'] = 'NONE'
     
-    config.add_section('LIGHTING')
     
+    config.add_section('CONNECT')
+    config['CONNECT']['mes_type'] = 'NONE'
+    config['CONNECT']['mes_path'] = 'NONE'
+    
+    
+    config.add_section('LIGHTING')
     config['LIGHTING']['red'] = "127"
     config['LIGHTING']['green'] = "127"
     config['LIGHTING']['blue'] = "127"
     
+    
     config.add_section('CUDA')
     config["CUDA"]["CUDA_VISIBLE_DEVICES"] = "-1"
     
-    config.add_section('AI')
     
+    config.add_section('AI')
     config['AI']['minimum'] = "0.6"
     config['AI']['train_rotate'] = "N"
     config['AI']['train_brightness'] = "N"
-    config.add_section('VISION')
     
+    
+    config.add_section('VISION')
     config['VISION']['trigger_type'] = "NORMAL"
     
-    config.add_section('CAMERA')
     
+    config.add_section('CAMERA')
     config['CAMERA']['name'] = "Camera"
     
-    config.add_section('MODE')
     
+    config.add_section('MODE')
     config['MODE']['name'] = "ENGINEER"
     config['MODE']['non_stop'] = "Y"
     config['MODE']['alarm_if_fail_3x'] = "N"
     
     
     config.add_section('LOG')    
-    config['LOG']['type'] = "NORMAL"
+    config['LOG']['type'] = "NORMAL" #KAIFA, FLEX, VS, NORMAL
     config['LOG']['images_path'] = "LOG/IMAGES"
     config['LOG']['results_path'] = "LOG/RESULTS"
-    config['LOG']['reset_log'] = "N"  #write log while reset
-    config['LOG']['mes_path'] = "LOG/MES"
-    config['LOG']['tester_id'] = "ASVI_1"
+    
+    config['LOG']['mes_path'] = "LOG/MES" # Extra Path for KAIFA
+    config['LOG']['tester_id'] = "ASVI_1" # Extra Attribute for KAIFA
+    
+    config['LOG']['backup_path'] = "LOG/BACKUP" # Backup Path
+    
+    config['LOG']['reset_log'] = "N"  # Write log while reset
+    
+    
       
     write_config()
     

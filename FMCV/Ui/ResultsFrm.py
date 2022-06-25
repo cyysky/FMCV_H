@@ -96,7 +96,7 @@ class ResultsFrame(ttk.Frame):
     def set_result(self,is_pass):
         if is_pass is None:
             self.lbl_result.config(bg='SystemButtonFace',text="RESET")
-            self.update_total()
+            #self.update_total()
         else:
             if is_pass:
                 color = 'green'
@@ -105,6 +105,7 @@ class ResultsFrame(ttk.Frame):
                 color = 'red'
                 msg = 'FAIL'
             self.lbl_result.config(bg=color,text=msg)
+        self.update_total()
             
     def set_running(self):
         self.lbl_result.config(bg='yellow',text="Running")
@@ -113,6 +114,7 @@ class ResultsFrame(ttk.Frame):
         total_pass = self.start.Config.class_total.get("PASS")
         total_fail = self.start.Config.class_total.get("FAIL")
         self.lbl_stat.config(text = f"Total PASS : {total_pass}\nTotal FAIL : {total_fail}")
+        
         
     def reset_total_count(self):
         self.start.Main.reset_total_count()
