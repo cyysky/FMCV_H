@@ -44,6 +44,9 @@ def refresh_result_view(pos = -1):
     #M.result_frame.set_running()
     
     try:
+        #M.result_frame.set_running()
+        M.r_view.set_image(self.Main.result_frame[M.cam_pos][pos])
+        M.r_view.current_results = self.Main.results[M.cam_pos][pos]
         scale = M.r_view.get_scale()
 
         for roi_n, roi in enumerate(self.Main.results[M.cam_pos][pos]): 
@@ -55,9 +58,7 @@ def refresh_result_view(pos = -1):
                 color = 'red'
             M.r_view.viewer.create_rectangle(roi['x1'] * scale, roi['y1'] * scale, roi['x2'] * scale, roi['y2'] * scale , outline=color,  tags=(str(roi_n)))
         
-        #M.result_frame.set_running()
-        M.r_view.set_image(self.Main.result_frame[M.cam_pos][pos])
-        M.r_view.current_results = self.Main.results[M.cam_pos][pos]
+
         
     except:
         #traceback.print_exc()

@@ -19,6 +19,7 @@ np.set_printoptions(formatter={'float': lambda x: "{0:0.5f}".format(x)})
 def init(s):
     global self
     self = s 
+    load()
 
 def load():
     global MODEL
@@ -31,6 +32,7 @@ def load():
     if model is not None:
         model = None
         tf.keras.backend.clear_session()
+        print("Clear loaded model")
     
     if os.path.exists(MODEL):
         model = tf.keras.models.load_model(MODEL)

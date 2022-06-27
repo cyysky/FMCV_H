@@ -156,7 +156,6 @@ except:
     config['LOG']['reset_log'] = "N"  # Write log while reset
     
     
-      
     write_config()
     
     print_config()
@@ -175,17 +174,3 @@ except:
 def write_total():
     with open(os.path.join("Profile",profile,'class_total.json'), 'w') as fp:
         json.dump(class_total, fp, sort_keys=True, indent=4)
-        
-# initialize fiducial offsets
-#fiducial_offset = {}
-#try:
-#    with open(os.path.join("Profile",profile,'fiducial_offset.json')) as json_file:
-#        fiducial_offset = json.load(json_file)
-#except:
-#    traceback.print_exc()
-#    with open(os.path.join("Profile",profile,'fiducial_offset.json'), 'w') as fp:
-#        json.dump(fiducial_offset, fp, sort_keys=True, indent=4)
-#        
-#def write_fiducial_offset():
-#    with open(os.path.join("Profile",profile,'fiducial_offset.json'), 'w') as fp:
-#        json.dump(fiducial_offset, fp, sort_keys=True, indent=4)

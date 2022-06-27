@@ -33,6 +33,13 @@ loaded_profile = []
 
 flag_save = False
 
+def init(s):
+    global start
+    start = s 
+    if start.args.profile is not None:
+        start.Config.profile = start.args.profile #Manually override profile name by Command Line -p --profile
+    read(start.Config.profile)
+
 def read(in_name):
     global profile, name
     name = in_name
@@ -68,12 +75,12 @@ def write():
         for step_n, step in enumerate(src): 
             profile[src_n].append([])
             for roi_n, roi in enumerate(step): 
-                #print(self.Util.without_keys(roi,{"img"})) #debug use
-                profile[src_n][step_n].append(self.Util.without_keys(roi,{"img"}))
+                #print(start.Util.without_keys(roi,{"img"})) #debug use
+                profile[src_n][step_n].append(start.Util.without_keys(roi,{"img"}))
                 #if roi.get('img') is not None:
                 #    profile[src_n][step_n][roi_n].update({"image":base64.b64encode(cv2.imencode('.png',roi['img'])[1]).decode()})
                 
-    file_name = self.Util.utc_to_local(datetime.utcnow()).strftime('%Y-%m-%d_%H%M%S_%f')[:-3] + "_profile.json"
+    file_name = start.Util.utc_to_local(datetime.utcnow()).strftime('%Y-%m-%d_%H%M%S_%f')[:-3] + "_profile.json"
     try :
         os.makedirs(join("Profile",name,"Profile_Backup"), exist_ok=True)     
         os.replace(join("Profile",name,"profile.json"),join("Profile",name,"Profile_Backup",file_name))
@@ -137,12 +144,8 @@ def update_roi(src_n, step_n,roi_n,pair):
     global loaded_profile
     loaded_profile[src_n][step_n][roi_n].update(pair)
 
-def init(s):
-    global self
-    self = s 
-
 def write_image(image_folder_name, cropped):
-    file_name = self.Util.utc_to_local(datetime.utcnow()).strftime('%Y-%m-%d_%H%M%S_%f')[:-3]
+    file_name = start.Util.utc_to_local(datetime.utcnow()).strftime('%Y-%m-%d_%H%M%S_%f')[:-3]
     cv2.imwrite(join("Profile", name, "images", image_folder_name, file_name+".png"), cropped)
     return join("Profile", name, "images", image_folder_name, file_name+".png")
 
