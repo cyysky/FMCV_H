@@ -4,6 +4,7 @@ from PIL import ImageTk, Image
 import cv2
 from FMCV.Ui.ScrollableFrm  import ScrollableFrame
 from FMCV import Util
+from FMCV.Ui.PlatformSetting import PlatformSettingFrame
 
 from FMCV.Ui.OperatorTop import OperatorWindow
 
@@ -91,6 +92,13 @@ class ControlFrame(ttk.Frame):
         button_1.pack(side=TOP)
         button_1 = Button(frm, text ="Robot Next Step", command = start.ActionUi.go_next)
         button_1.pack(side=TOP)
+
+        # Platform setting button
+        labelframe_platform = LabelFrame(frm, bd=3, text="Platform")
+        labelframe_platform.pack(fill='x', ipadx=10, ipady=10, padx=5, pady=5)
+        button_platform_setting = Button(labelframe_platform, text="Setting")
+        button_platform_setting.bind("<Button>", lambda e: PlatformSettingFrame(start, start.MainUi.top))
+        button_platform_setting.pack(fill='x', ipadx=5, ipady=5, padx=5, pady=5)
         
         #Open new window
         #button_1 = Button(frm, text ="New Window", command = start.ActionUi.go_next)

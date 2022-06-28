@@ -64,7 +64,7 @@ class ROISettingFrame(ttk.Frame):
     def roi_type_cmb_callback(self,event):
         if self.start.Config.mode_name == "ENGINEER":
             if self.start.MainUi.roi_index > -1:
-                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index].update({"type":event.widget.get()})
+                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][self.start.MainUi.roi_index].update({"type":event.widget.get()})
                 #self.start.MainUi_Refresh.refresh_result_view()
                 
                 self.start.Main.flag_reset = True
@@ -80,7 +80,7 @@ class ROISettingFrame(ttk.Frame):
     def display_roi_type_widget(self):        
         self.clear_roi_type_widget()
         if self.start.MainUi.roi_index > -1:
-            roi_type = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index].get('type')
+            roi_type = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][self.start.MainUi.roi_index].get('type')
             if roi_type == "CNN":
                 self.cnn_frame.pack(fill=BOTH, expand=True)
                 self.cnn_frame.refresh()
@@ -92,7 +92,7 @@ class ROISettingFrame(ttk.Frame):
     def refresh_roi_settings(self):
         if self.start.MainUi.roi_index > -1 :
             
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index]
+            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][self.start.MainUi.roi_index]
             
             self.lbl_roi_name.config(text = f"ROI Name : {roi.get('name')}")
             
@@ -109,7 +109,7 @@ class ROISettingFrame(ttk.Frame):
     def update_roi_image(self):
         roi_index = self.start.MainUi.roi_index
         if roi_index > -1:
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index]        
+            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][roi_index]
             frame = list(self.start.Camera.get_image().values())[self.start.MainUi.cam_pos]
             x1 = roi['x1'] 
             y1 = roi['y1'] 

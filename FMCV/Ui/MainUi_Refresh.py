@@ -10,7 +10,7 @@ def refresh_edit_roi_rectangle():
     if M.roi_index > -1:
         #print(f'step_cmb_pos {M.cmb_pos} roi_cmb_pos {M.roi_index}')
         scale = M.view.get_scale()
-        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index]        
+        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos]["roi"][M.roi_index]
         move_rectangle(roi['x1']*scale, roi['y1']*scale, roi['x2']*scale, roi['y2']*scale)
     else:
         remove_rectangle()
@@ -32,7 +32,7 @@ def refresh_listbox(pos = -1):
         pos = M.cmb_pos
     M.Lb1.delete(0,END)
     try:
-        for roi_n, roi in enumerate(self.Profile.loaded_profile[M.cam_pos][pos]):
+        for roi_n, roi in enumerate(self.Profile.loaded_profile[M.cam_pos][pos]["roi"]):
             M.Lb1.insert(roi_n, roi['name'])
     except:
         print("Empty source and position")
@@ -46,7 +46,7 @@ def refresh_result_view(pos = -1):
     try:
         scale = M.r_view.get_scale()
 
-        for roi_n, roi in enumerate(self.Main.results[M.cam_pos][pos]): 
+        for roi_n, roi in enumerate(self.Main.results[M.cam_pos][pos]):
             #print(f"{roi['name']} {roi['PASS']}")
             roi_pass = roi.get('PASS')
             if roi_pass is True:
@@ -60,7 +60,7 @@ def refresh_result_view(pos = -1):
         M.r_view.current_results = self.Main.results[M.cam_pos][pos]
         
     except:
-        #traceback.print_exc()
+        traceback.print_exc()
         print("refresh_result_view: didn't have results ")
     
 def refresh_step_cmb():
@@ -86,7 +86,7 @@ def refresh_source_cmb():
 
 def display_roi_image():
     if M.roi_index > -1:
-        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index]
+        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos]["roi"][M.roi_index]
         if roi.get('img') is not None:
             #print("display image")
             M.t_view.image_view.set_image(roi['img'])

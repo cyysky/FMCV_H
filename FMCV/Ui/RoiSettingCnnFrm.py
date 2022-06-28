@@ -54,7 +54,7 @@ class ROISettingCNNFrame(ttk.Frame):
     def update_roi_class(self):
         roi_index = self.start.MainUi.roi_index
         if  roi_index > -1:
-            self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index].update({"class":self.folder_cmb.get()})
+            self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][roi_index].update({"class":self.folder_cmb.get()})
             #self.start.MainUi_Refresh.refresh_result_view()
             self.start.MainUi.t_view.refresh_roi_settings()
             
@@ -64,7 +64,7 @@ class ROISettingCNNFrame(ttk.Frame):
         if roi_index > -1:
             self.start.Profile.create_image_folder(self.folder_cmb.get())
             self.folder_cmb['values'] = tuple(self.start.Profile.get_image_folders_list())
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index]   
+            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][roi_index]
             x1 = roi['x1'] 
             y1 = roi['y1'] 
             x2 = roi['x2'] 
@@ -77,7 +77,7 @@ class ROISettingCNNFrame(ttk.Frame):
     def refresh(self):
         if self.start.MainUi.roi_index > -1 :
             
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index]
+            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][self.start.MainUi.roi_index]
            
             self.lbl_class.config(text = f"Class : {roi.get('class')}")
             

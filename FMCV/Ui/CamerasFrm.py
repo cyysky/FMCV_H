@@ -73,21 +73,22 @@ class CamerasFrame(ttk.Frame):
         
     def update_results(self):
         S = self.start
-       
+
         for n,(name,view) in enumerate(self.dt_frm_cameras.items()):
             view.config(highlightbackground='white')
             
             try : 
                 is_pass = True
-                for roi_n, roi in enumerate(S.Main.results[n][S.MainUi.cmb_pos]): 
-                    roi_pass = roi.get('PASS')
-                    #print(f"{n} {S.MainUi.cmb_pos} {roi_pass}")
-                    if roi_pass is True:
-                        color = 'green'
-                    else:
-                        color = 'red'
-                        break
-                view.config(highlightbackground=color) 
+                if n <= (len(S.Main.results) - 1):
+                    for roi_n, roi in enumerate(S.Main.results[n][S.MainUi.cmb_pos]):
+                        roi_pass = roi.get('PASS')
+                        #print(f"{n} {S.MainUi.cmb_pos} {roi_pass}")
+                        if roi_pass is True:
+                            color = 'green'
+                        else:
+                            color = 'red'
+                            break
+                    view.config(highlightbackground=color)
             except:
-                #traceback.print_exc()
+                traceback.print_exc()
                 print("Empty results")

@@ -97,7 +97,7 @@ def btn1_clicked(event):
 
     M.lx,M.ly = (M.view.viewer.canvasx(event.x), M.view.viewer.canvasy(event.y))
     
-    roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index] 
+    roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos]["roi"][M.roi_index]
     M.lx1 = roi['x1'] 
     M.ly1 = roi['y1'] 
     M.lx2 = roi['x2'] 
@@ -108,7 +108,7 @@ def btn1_clicked(event):
     
     if M.roi_index > -1:
         scale = M.view.get_scale()
-        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index]        
+        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos]["roi"][M.roi_index]
 
         x1 = roi['x1'] * scale
         y1 = roi['y1'] * scale
@@ -133,7 +133,7 @@ def btn1_move(event):
     ply = int(M.ly/M.view.scale)
     
     if M.roi_index > -1:
-        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos][M.roi_index]     
+        roi = self.Profile.loaded_profile[M.cam_pos][M.cmb_pos]["roi"][M.roi_index]
 
         rx1 = roi['x1'] 
         ry1 = roi['y1'] 

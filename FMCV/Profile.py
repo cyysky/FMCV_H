@@ -49,7 +49,7 @@ def read(in_name):
         
         profile.append([]) # src
         
-        profile[0].append([]) # step
+        profile[0].append({"platform": {"x": 350, "y": 0, "z": 0, "roll": 0}, "roi": []})  # step
         
         # profile[0][0].append([]) # roi
         
@@ -65,11 +65,15 @@ def write():
     profile.clear()
     for src_n, src in enumerate(loaded_profile):
         profile.append([])
-        for step_n, step in enumerate(src): 
+        for step_n, step in enumerate(src):
+            #
             profile[src_n].append([])
-            for roi_n, roi in enumerate(step): 
+            profile[src_n][step_n] = {}
+            profile[src_n][step_n]["platform"] = step["platform"]
+            profile[src_n][step_n]["roi"] = []
+            for roi_n, roi in enumerate(step["roi"]):
                 #print(self.Util.without_keys(roi,{"img"})) #debug use
-                profile[src_n][step_n].append(self.Util.without_keys(roi,{"img"}))
+                profile[src_n][step_n]["roi"].append(self.Util.without_keys(roi,{"img"}))
                 #if roi.get('img') is not None:
                 #    profile[src_n][step_n][roi_n].update({"image":base64.b64encode(cv2.imencode('.png',roi['img'])[1]).decode()})
                 
@@ -88,14 +92,24 @@ def load():
     global profile, loaded_profile, name
 
     loaded_profile.clear()
+    loaded_profile
     for src_n, src in enumerate(profile):
         loaded_profile.append([])
-        for step_n, step in enumerate(src): 
+        for step_n, step in enumerate(src):
             loaded_profile[src_n].append([])
-            for roi_n, roi in enumerate(step): 
-                loaded_profile[src_n][step_n].append(roi)
+            # print("Step:")
+            # print(json.dumps(step["platform"], indent=4))
+            # # extract platform param
+            # loaded_profile[src_n][step_n] = step["platform"]
+            loaded_profile[src_n][step_n] = {}
+            loaded_profile[src_n][step_n]["platform"] = step["platform"]
+            loaded_profile[src_n][step_n]["roi"] = []
+            for roi_n, roi in enumerate(step["roi"]):
+                # each step include platform position and multiple ROIs
+                loaded_profile[src_n][step_n]["roi"].append(roi)
+                #print(json.dumps(roi, indent=4))
                 if roi.get('image') is not None:
-                    loaded_profile[src_n][step_n][roi_n].update({"img":cv2.imdecode(np.frombuffer(base64.b64decode(roi["image"]), dtype=np.uint8),flags=cv2.IMREAD_COLOR)})
+                    loaded_profile[src_n][step_n]["roi"][roi_n].update({"img":cv2.imdecode(np.frombuffer(base64.b64decode(roi["image"]), dtype=np.uint8),flags=cv2.IMREAD_COLOR)})
 
 def add_source(src_n):
     print(src_n)
@@ -110,12 +124,12 @@ def remove_source(src_n):
 def add_step(src_n, step_n):
     print(step_n)
     global loaded_profile
-    loaded_profile[src_n].insert(step_n + 1, [])
+    loaded_profile[src_n].insert(step_n + 1, {"platform": {"x": 350, "y": 0, "z": 0, "roll": 0}, "roi": []})
     
 def insert_step(src_n, step_n):
     print(step_n)
     global loaded_profile
-    loaded_profile[src_n].insert(step_n-1, [])
+    loaded_profile[src_n].insert(step_n-1, {"platform": {"x": 350, "y": 0, "z": 0, "roll": 0}, "roi": []})
     
 def remove_step(src_n, step_n):
     global loaded_profile
@@ -123,19 +137,19 @@ def remove_step(src_n, step_n):
     
 def add_roi(src_n, step_n,roi_n,roi):
     global loaded_profile
-    loaded_profile[src_n][step_n].insert(roi_n+1,roi)
+    loaded_profile[src_n][step_n]["roi"].insert(roi_n+1,roi)
 
 def update_roi(src_n, step_n, roi_n, roi):
     global loaded_profile
-    loaded_profile[src_n][step_n][roi_n].update(roi)
+    loaded_profile[src_n][step_n]["roi"][roi_n].update(roi)
     
 def remove_roi(src_n, step_n,roi_n):
     global loaded_profile
-    loaded_profile[src_n][step_n].pop(roi_n)
+    loaded_profile[src_n][step_n]["roi"].pop(roi_n)
 
 def update_roi(src_n, step_n,roi_n,pair):
     global loaded_profile
-    loaded_profile[src_n][step_n][roi_n].update(pair)
+    loaded_profile[src_n][step_n]["roi"][roi_n].update(pair)
 
 def init(s):
     global self

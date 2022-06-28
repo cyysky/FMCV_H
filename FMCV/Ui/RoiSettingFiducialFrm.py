@@ -40,12 +40,12 @@ class ROISettingFiducialFrame(ttk.Frame):
         if  roi_index > -1:
             try:            
                 print(int(self.margin_entry.get()))
-                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index].update({"margin":int(self.margin_entry.get())})
+                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][roi_index].update({"margin":int(self.margin_entry.get())})
             except:
                 messagebox.showwarning("Please key-in margin integer only", "Warning")
             try:            
                 print(float(self.minimal_entry.get()))
-                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][roi_index].update({"minimal":float(self.minimal_entry.get())})
+                self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][roi_index].update({"minimal":float(self.minimal_entry.get())})
             except:
                 messagebox.showwarning("Please key-in minimal decimal only 0.0 - 1.0", "Warning")
         else:
@@ -55,7 +55,7 @@ class ROISettingFiducialFrame(ttk.Frame):
     def refresh(self):
         if self.start.MainUi.roi_index > -1 :
             
-            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos][self.start.MainUi.roi_index]
+            roi = self.start.Profile.loaded_profile[self.start.MainUi.cam_pos][self.start.MainUi.cmb_pos]["roi"][self.start.MainUi.roi_index]
 
             self.margin_entry.delete(0, END)
             self.margin_entry.insert(0, str(roi.get("margin")))

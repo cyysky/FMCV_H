@@ -129,6 +129,7 @@ def next_step():
     current_step = current_step + 1
 
     if current_step > len(results[0]) - 1:
+
         current_step = 0
         
         update_total()
@@ -169,7 +170,7 @@ def reset():
         results.append([])
         for step_n, step in enumerate(src):
             results[src_n].append([])
-            for roi_n, roi in enumerate(step):
+            for roi_n, roi in enumerate(step["roi"]):
                 results[src_n][step_n].append(copy.deepcopy(roi))
             
     result_frame.clear()
