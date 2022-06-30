@@ -80,7 +80,7 @@ def write():
             profile[src_n][step_n]["roi"] = []
             for roi_n, roi in enumerate(step["roi"]):
                 #print(self.Util.without_keys(roi,{"img"})) #debug use
-                profile[src_n][step_n]["roi"].append(self.Util.without_keys(roi,{"img"}))
+                profile[src_n][step_n]["roi"].append(start.Util.without_keys(roi,{"img"}))
                 #if roi.get('img') is not None:
                 #    profile[src_n][step_n][roi_n].update({"image":base64.b64encode(cv2.imencode('.png',roi['img'])[1]).decode()})
                 

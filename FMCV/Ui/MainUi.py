@@ -120,9 +120,30 @@ def init(s):
     
     m4.add(t_view, weight=10)
     m4.add(result_frame, weight=12)
-    
+
+    bottom_frame = ttk.PanedWindow(m2, orient=HORIZONTAL)
+    platform_control_frame = LabelFrame(bottom_frame, text="Platform Control", height=30)
+    bottom_frame.add(platform_control_frame, weight=1)
+    platform_control_frame.columnconfigure(0, weight=1)
+    platform_control_frame.columnconfigure(1, weight=1)
+    platform_control_frame.columnconfigure(2, weight=1)
+    platform_control_frame.columnconfigure(3, weight=1)
+
+
+    self.platform_mode = StringVar()
+    self.platform_mode_label = Label(platform_control_frame, textvariable=self.platform_mode)
+    self.platform_mode_label.grid(row=0, column=0, padx=5, pady=5, sticky='ew')
+    self.platform_enable_button = Button(platform_control_frame, text="Enable Platform", command=toggle_platform_mode)
+    self.platform_enable_button.grid(row=0, column=1, padx=5, pady=5, sticky='ew')
+    self.platform_clear_error_button = Button(platform_control_frame, text="Clear Error", command=clear_platform_error)
+    self.platform_clear_error_button.grid(row=0, column=2, padx=5, pady=5, sticky='ew')
+    self.platform_reset_button = Button(platform_control_frame, text="Reset", command=reset_platform)
+    self.platform_reset_button.grid(row=0, column=3, padx=5, pady=5, sticky='ew')
+
+
     m2.add(m3, weight=1)
     m2.add(m4, weight=1)
+    m2.add(bottom_frame, weight=1)
     
     paned_left.add(cf, weight = 10)
     paned_left.add(frm_cams, weight = 7)
@@ -154,6 +175,9 @@ def cmb_callback(event):
     
     self.MainUi_Refresh.refresh_listbox()
     self.MainUi_Refresh.refresh_result_view()
+
+    self.Main.move_platform_to_position(cmb_pos)
+    pass
     
 
 def Lbl_callback(event):
@@ -193,6 +217,7 @@ def update_source(frames):
     try:
         view.set_image(list(frames.values())[cam_pos])
     except:
+        print("update source exception")
         traceback.print_exc()
         
 def ask_reset_continuous_fail_alarm():
@@ -203,3 +228,35 @@ def ask_reset_continuous_fail_alarm():
         # showinfo(
             # title='Deletion Status',
             # message='The data is deleted successfully')
+
+def update_platform_status(is_connected=False, mode=""):
+    """Get the platform status from Main.py and update it to UI"""
+    # update connection status and mode to UI
+    if (mode is not None):
+        self.platform_mode.set(mode)
+        if (mode == "MODE_DISABLED"):
+            self.platform_mode_label.config(bg="#ff0000", fg="#ffffff")
+        elif (mode == "MODE_ENABLE"):
+            self.platform_mode_label.config(bg="#23ff23", fg="#000000")
+    pass
+
+def toggle_platform_mode():
+    """Enable/disable platform operating mode"""
+    if (self.MovingPlatform.get_is_enabled() == True):
+        self.MovingPlatform.disable_platform()
+        self.platform_enable_button.config(text="Enable Platform")
+    else:
+        self.MovingPlatform.enable_platform()
+        self.platform_enable_button.config(text="Disable Platform")
+    pass
+
+def clear_platform_error():
+    """Clear error"""
+    self.MovingPlatform.clear_error()
+    pass
+
+
+def reset_platform():
+    """Reset platform"""
+    self.MovingPlatform.reset()
+    pass

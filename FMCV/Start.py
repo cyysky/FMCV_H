@@ -56,6 +56,10 @@ Log.init(self)
 Camera = None
 exec("from FMCV.Camera import {} as Camera".format(Config.config['CAMERA']['name']))
 
+from FMCV.Platform.Platform import Platform, CartesianPosition
+MovingPlatform = None
+Main.init_moving_platform()
+
 os.environ["CUDA_VISIBLE_DEVICES"] = Config.config["CUDA"]["CUDA_VISIBLE_DEVICES"]
 
 def run():

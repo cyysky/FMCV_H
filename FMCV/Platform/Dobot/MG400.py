@@ -4,10 +4,11 @@ from FMCV.Platform.Dobot.dobot_api import *
 from FMCV.Platform.Dobot.alarm_controller import alarm_controller_list
 from FMCV.Platform.Dobot.alarm_servo import alarm_servo_list
 import numpy as np
-from threading import Thread
+from threading import Thread, Condition
 import time
 import json
 import traceback
+from multiprocessing import Process
 
 class MG400(PlatformInterface):
     """Inherit from PlatformInterface"""
@@ -34,6 +35,7 @@ class MG400(PlatformInterface):
 
     def __init__(self, feedback_callback=None):
         self.is_connected = False
+        self.is_enabled = False
 
         self.ipaddr = "192.168.1.6"     # default ip
         self.dashboard_port = "29999"
@@ -42,16 +44,33 @@ class MG400(PlatformInterface):
         self.feedback_port = "30005"    # feedback rate ~200ms for port 30005
         self.text_log = ""
         self.mode = ""
+        self.prev_mode_number = 3
         self.is_error_occur = False
 
         self.alarm_controller_dict = self.convert_dict(alarm_controller_list)
         self.alarm_servo_dict = self.convert_dict(alarm_servo_list)
 
+
+        #self.move_sync_condition = Condition()
+
+        self.complete_callback = None
+
         if(feedback_callback is not None):
             self.feedback_callback = feedback_callback
 
+    def set_feedback_callback(self, feedback_callback=None):
+        if (feedback_callback is not None):
+            self.feedback_callback = feedback_callback
+        pass
+
     def model_name(self):
         return "Dobot MG400"
+
+    def get_is_connected(self):
+        return self.is_connected
+
+    def get_is_enabled(self):
+        return self.is_enabled
 
     def operating_mode(self):
         return self.mode
@@ -88,8 +107,8 @@ class MG400(PlatformInterface):
                 self.is_connected = True
 
                 # start feedback thread
-                self.feedback_thread = Thread(target=self.feedback)
-                self.feedback_thread.setDaemon(True)
+                self.feedback_thread = Thread(target=self.feedback, daemon=True)
+                #self.feedback_thread = Process(target=self.feedback, daemon=True)
                 self.feedback_thread.start()
 
                 print("MG400 Connected")
@@ -122,11 +141,15 @@ class MG400(PlatformInterface):
         return self.is_connected
 
     def enable_platform(self) -> bool:
-        self.client_dash.EnableRobot()
+        ret = self.client_dash.EnableRobot()
+        # TODO: check the returned value
+        self.is_enabled = True
         return True
 
     def disable_platform(self) -> bool:
         self.client_dash.DisableRobot()
+        # TODO: check the returned value
+        self.is_enabled = False
         return True
 
     def clear_error(self) -> bool:
@@ -147,9 +170,35 @@ class MG400(PlatformInterface):
                               float(y),
                               float(z),
                               float(roll))
-        #TODO: create another thread to get the feed back
+
         if(complete_callback is not None):
-            complete_callback()
+            # Problem: if simply change the callback before previous MovJ finish, it will call the new callback and mess up the things
+            self.complete_callback = complete_callback
+
+    def move_to_point_sync(self, x=0, y=0, z=0, roll=0):
+        # do the works here
+        #self.move_sync_condition.acquire()
+        try:
+
+            self.client_move.MovJ(float(x),
+                                  float(y),
+                                  float(z),
+                                  float(roll))
+
+            # block here until operating mode switch from running to enabled
+            #print("block for operation finish")
+            time.sleep(2)
+            #self.move_sync_condition.wait(timeout=5)
+            #print("Run finish")
+        except Exception as e:
+            traceback.print_exc()
+            print(f"move_to_point_sync() exception: {e}")
+        finally:
+            #self.move_sync_condition.release()
+            # print("Platform available")
+            pass
+
+        pass
 
     def convert_dict(self, alarm_list):
         alarm_dict = {}
@@ -191,10 +240,10 @@ class MG400(PlatformInterface):
                     # Refresh coordinate points
                     self.actual_feed_joint = a["q_actual"]
                     self.coord_feed_joint = a["tool_vector_actual"]
-                    self.actual_x = self.coord_feed_joint[0][0]
-                    self.actual_y = self.coord_feed_joint[0][1]
-                    self.actual_z = self.coord_feed_joint[0][2]
-                    self.actual_roll = self.coord_feed_joint[0][3]
+                    self.actual_x = float(self.coord_feed_joint[0][0])
+                    self.actual_y = float(self.coord_feed_joint[0][1])
+                    self.actual_z = float(self.coord_feed_joint[0][2])
+                    self.actual_roll = float(self.coord_feed_joint[0][3])
 
                     # check alarms
                     if a["robot_mode"] == 9:
@@ -203,15 +252,30 @@ class MG400(PlatformInterface):
                     else:
                         self.text_log = ""
                         self.is_error_occur = False
+
+                    if ((self.prev_mode_number == 7) and (a["robot_mode"][0] != 7)):
+                        # robot is just finish "running"
+
+                        #self.move_sync_condition.acquire()
+                        #print("finish running")
+                        #self.move_sync_condition.notify()
+                        #self.move_sync_condition.release()
+                        if (self.complete_callback is not None):
+                            self.complete_callback()
+
+                    self.prev_mode_number = a["robot_mode"][0]
+
                 feedback_data = {}
                 if((self.feedback_callback is not None) and (self.is_connected)):
                     self.feedback_callback(feedback_data)
 
                 time.sleep(0.005)
         except:
-            pass
+            traceback.print_exc()
+            self.prev_mode_number = 3
+            self.feedback() # force it to restart the task if exception occurs
         finally:
-            #print("Feedback thread ended")
+            print("Feedback thread ended")
             pass
 
     def display_error_info(self):

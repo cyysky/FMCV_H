@@ -3,6 +3,52 @@ import FMCV.Platform.Dobot as Dobot
 import functools
 
 
+class CartesianPosition():
+    def __init__(self):
+        self.x = 0.0
+        self.y = 0.0
+        self.z = 0.0
+        self.yaw = 0.0
+        self.pitch = 0.0
+        self.roll = 0.0
+        pass
+
+    def set_x(self, val=0.0):
+        self.x = val
+
+    def set_y(self, val=0.0):
+        self.y = val
+
+    def set_z(self, val=0.0):
+        self.z = val
+
+    def set_yaw(self, val=0.0):
+        self.yaw = val
+
+    def set_pitch(self, val=0.0):
+        self.pitch = val
+
+    def set_roll(self, val=0.0):
+        self.roll = val
+
+    def get_x(self):
+        return self.x
+
+    def get_y(self):
+        return self.y
+
+    def get_z(self):
+        return self.z
+
+    def get_yaw(self):
+        return self.yaw
+
+    def get_pitch(self):
+        return self.pitch
+
+    def get_roll(self):
+        return self.roll
+
 class Platform:
     @staticmethod
     def platform_factory(model="", feedback_callback=None):

@@ -20,6 +20,7 @@ import cv2
 from PIL import Image, ImageTk
 import traceback 
 import time
+from threading import Thread
 
 live = True
 current_step = 0 
@@ -97,8 +98,9 @@ def detect(step=None,SN=""):
     if SN != "":
         barcode = SN
         print(f'Incoming {barcode}')
-        
-    
+
+    move_platform_to_position(current_step)
+
     detect_next_results = start_detect(step)
     print(f"detect_next_results {detect_next_results}")
     
@@ -149,8 +151,8 @@ def next_step():
         
         barcode = ""
         self.MainUi.barcode_entry.delete(0, 'end')
-        
-        
+
+
     print("current_step {}".format(current_step))
         
 def reset():
@@ -277,3 +279,86 @@ def update_total():
     else :
         total_fail = total_fail + 1
     start.Config.class_total.update({"PASS":total_pass,"FAIL":total_fail})
+
+
+def init_moving_platform():
+    """Create instance for moving platform and try to connect to it"""
+    print("Initialize moving platform")
+    try:
+        # Create instance for moving platform and its current position
+        start.MovingPlatform = start.Platform.platform_factory(model=start.Config.config['PLATFORM']['model'], feedback_callback=moving_platform_status_feedback_handler)
+        self.current_platform_position = start.CartesianPosition()
+
+        # start the auto connect/reconnect thread
+        self.is_platform_start = True
+        self.moving_platform_auto_connect_thread = Thread(target=moving_platform_auto_connect_task, daemon=True)
+        self.moving_platform_auto_connect_thread.start()
+    except:
+        print(f"Initialize moving platform {start.Config.config['PLATFORM']['model']} failed")
+        traceback.print_exc()
+        pass
+
+def uninit_moving_platform():
+    """Stop the autoconnect thread and it will disconnect also"""
+    self.is_platform_start = False
+    self.moving_platform_auto_connect_thread.join()
+
+
+def moving_platform_auto_connect_task():
+    """Task to auto connect to moving platform's hardware if it is disconnected"""
+    print("Start moving platform auto connect task")
+    while True:
+        if (self.is_platform_start == False):
+            # disconnect from the hardware
+            start.MovingPlatform.disconnect()
+            print(f"Disconnect from {start.Config.config['PLATFORM']['model']}")
+            self.MainUi.update_platform_status(is_connected=True, mode=start.MovingPlatform.operating_mode())
+
+            # break the while loop and end the thread
+            break
+
+        try:
+            if ((start.MovingPlatform.get_is_connected() == False) and self.is_platform_start):
+                # try to connect
+                print(f"Try to connect to {start.Config.config['PLATFORM']['ip_address']}")
+                start.MovingPlatform.connect(start.Config.config['PLATFORM']['ip_address'])
+
+            # check it every 2 seconds
+            time.sleep(2)
+        except:
+            traceback.print_exc()
+            print(f"Moving Platform {start.Config.config['PLATFORM']['model']} Connection Error!")
+
+    print("Moving Platform Auto Connect Task Ended")
+
+def moving_platform_status_feedback_handler(position_data):
+    # todo: suppose the position is feedback by the callback function, not from the instance
+    try:
+        self.current_platform_position.set_x(start.MovingPlatform.x())
+        self.current_platform_position.set_y(start.MovingPlatform.y())
+        self.current_platform_position.set_z(start.MovingPlatform.z())
+        self.current_platform_position.set_roll(start.MovingPlatform.roll())
+
+        # call the function in UI module to update the position to UI
+        self.MainUi.update_platform_status(is_connected=True, mode=start.MovingPlatform.operating_mode())
+    except:
+        traceback.print_exc()
+
+
+def move_platform_to_position(step_index):
+    # move the platform to its position
+    try:
+        # get selected position from profile
+        self.platform_position = self.Profile.loaded_profile[self.MainUi.cam_pos][step_index]["platform"]
+        print(f"Position: {self.platform_position}")
+
+        x = self.platform_position['x']
+        y = self.platform_position['y']
+        z = self.platform_position['z']
+        roll = self.platform_position['roll']
+
+        if (self.MovingPlatform.get_is_connected() == True):
+            self.MovingPlatform.move_to_point_sync(x, y, z, roll)
+
+    except Exception as e:
+        print("Error during reset platform position")

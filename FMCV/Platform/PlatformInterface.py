@@ -32,6 +32,18 @@ class PlatformInterface(metaclass=abc.ABCMeta):
 
     @property
     @abc.abstractmethod
+    def get_is_connected(self) -> str:
+        """Return connection status"""
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def get_is_enabled(self) -> str:
+        """Return platform enable/disable status"""
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
     def operating_mode(self) -> str:
         """Current operating mode"""
         raise NotImplementedError
@@ -58,6 +70,12 @@ class PlatformInterface(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def roll(self) -> float:
         """End effector roll"""
+        raise NotImplementedError
+
+    @property
+    @abc.abstractmethod
+    def set_feedback_callback(self, feedback_callback):
+        """Set feedback callback if unable to set it at class constructor"""
         raise NotImplementedError
 
     @abc.abstractmethod

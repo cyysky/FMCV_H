@@ -29,6 +29,7 @@ def print_config():
     ai_minimum = float(config['AI']['minimum'])
     trigger_type = config['VISION']['trigger_type']
     camera_name = config['CAMERA']['name']
+    platform_model = config['PLATFORM']['model']
     cuda_visible_devices = config["CUDA"]["CUDA_VISIBLE_DEVICES"]
     profile = config['PROFILE']['name']
     mode_name = config['MODE']['name']
@@ -72,6 +73,7 @@ def print_config():
     print(f'Trigger Type : {trigger_type}')
     print(f'Modbus Type : {modbus_type}')
     print(f'Camera Name : {camera_name}')
+    print(f'Platform Model : {platform_model}')
     print(f'cuda_visible_devices : {cuda_visible_devices}')
     
 def write_config():
@@ -135,7 +137,10 @@ except:
     
     config.add_section('CAMERA')
     config['CAMERA']['name'] = "Camera"
-    
+
+    config.add_section("PLATFORM")
+    config['PLATFORM']['model'] = "Dobot.MG400"
+    config['PLATFORM']['ip_address'] = "192.168.1.6"
     
     config.add_section('MODE')
     config['MODE']['name'] = "ENGINEER"

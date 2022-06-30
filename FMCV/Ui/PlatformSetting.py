@@ -15,13 +15,29 @@ class PlatformSettingFrame(tk.Toplevel):
 
     def __init__(self, start, master=None):
         super().__init__(master=master)
+        self.start = start
         self.title("Platform Setting")
         self.geometry("640x600")
         #self.resizable(False, False)
         self.protocol("WM_DELETE_WINDOW", self.on_closing)
 
+        self.default_x = 350
+        self.default_y = 0
+        self.default_z = 0
+        self.default_roll = 0
+
         self.is_closed = False
         self.platform = None
+
+        # get the platform instance from "start" module
+        if (start.MovingPlatform is not None):
+
+            self.platform = start.MovingPlatform
+            self.is_platform_connected = self.platform.is_connected
+            self.original_feedback = self.platform.feedback_callback
+            self.platform.feedback_callback = self.feedback_handler
+            #print(start.MovingPlatform.feedback_callback)
+            #print(dir(start.MovingPlatform.feedback_callback))
 
         self.create_widget(start, self)
 
@@ -61,7 +77,6 @@ class PlatformSettingFrame(tk.Toplevel):
         if(len(available_model_list) > 0):
             #print(f"set platform model to {available_model_list[0]}")
             self.selected_model.set(available_model_list[0])
-            self.model_selected(None)
 
         # ipaddress
         tk.Label(parent_frame, text="IP Address:", bg="#FFFFFF").grid(row=0, column=4, padx=5, pady=5, sticky=tk.E+tk.W)
@@ -70,8 +85,8 @@ class PlatformSettingFrame(tk.Toplevel):
         self.ipaddress.set("192.168.1.6")
         self.ip_entry = tk.Entry(parent_frame, textvariable=self.ipaddress)
         self.ip_entry.grid(row=0, column=5, columnspan=2, padx=5, pady=5, sticky=tk.E+tk.W)
-        self.connect_button = tk.Button(parent_frame, text="Connect", command=self.toggle_platform_connection)
-        self.connect_button.grid(row=0, column=7, padx=5, pady=5, sticky=tk.E+tk.W)
+        #self.update_button = tk.Button(parent_frame, text="Update", command=self.update_config)
+        #self.update_button.grid(row=0, column=7, padx=5, pady=5, sticky=tk.E+tk.W)
 
         # Status and platform control
         status_label_frame = tk.LabelFrame(parent_frame, text="Mode and Status")
@@ -118,10 +133,10 @@ class PlatformSettingFrame(tk.Toplevel):
 
         # master offset value
         tk.Label(master_offset_frame, text="Offset x, y, z, roll:").grid(row=0, column=0, padx=5, pady=5, sticky='ew')
-        self.offset_x = tk.StringVar().set(0)
-        self.offset_y = tk.StringVar().set(0)
-        self.offset_z = tk.StringVar().set(0)
-        self.offset_roll = tk.StringVar().set(0)
+        self.offset_x = tk.StringVar()
+        self.offset_y = tk.StringVar()
+        self.offset_z = tk.StringVar()
+        self.offset_roll = tk.StringVar()
         offset_x_entry = tk.Entry(master_offset_frame, textvariable=self.offset_x, width=6, justify='center')
         offset_y_entry = tk.Entry(master_offset_frame, textvariable=self.offset_y, width=6, justify='center')
         offset_z_entry = tk.Entry(master_offset_frame, textvariable=self.offset_z, width=6, justify='center')
@@ -130,6 +145,10 @@ class PlatformSettingFrame(tk.Toplevel):
         offset_y_entry.grid(row=0, column=2, padx=5, pady=5, sticky='ew')
         offset_z_entry.grid(row=0, column=3, padx=5, pady=5, sticky='ew')
         offset_roll_entry.grid(row=0, column=4, padx=5, pady=5, sticky='ew')
+        self.offset_x.set(0)
+        self.offset_y.set(0)
+        self.offset_z.set(0)
+        self.offset_roll.set(0)
 
         # Profile Setting Frame
         profile_step_frame = tk.LabelFrame(parent_frame, text="Profile Setting")
@@ -199,6 +218,10 @@ class PlatformSettingFrame(tk.Toplevel):
         self.new_y_label.grid(row=2, column=1, padx=5, pady=5, sticky=tk.E+tk.W)
         self.new_z_label.grid(row=2, column=2, padx=5, pady=5, sticky=tk.E+tk.W)
         self.new_roll_label.grid(row=2, column=3, padx=5, pady=5, sticky=tk.E+tk.W)
+        self.new_x.set(self.default_x)
+        self.new_y.set(self.default_y)
+        self.new_z.set(self.default_z)
+        self.new_roll.set(self.default_roll)
 
         # Show xyz and roll position
         self.actual_x = tk.StringVar()
@@ -238,9 +261,10 @@ class PlatformSettingFrame(tk.Toplevel):
 
     def on_closing(self):
         if tk.messagebox.askokcancel("Quit", "Exit Platform Position Setting?"):
-            # check if the connection is opened
-            if self.is_platform_connected:
-                self.platform.disconnect()
+
+            # return to original feedback
+            if (self.original_feedback is not None):
+                self.platform.feedback_callback = self.original_feedback
 
             self.destroy()
         pass
@@ -261,23 +285,16 @@ class PlatformSettingFrame(tk.Toplevel):
 
     def model_selected(self, event):
         model_name = self.selected_model.get()
-        self.platform = Platform.platform_factory(model_name, self.feedback_handler)
+
+        #todo: user select another model, take effect immediately
         pass
 
-    def toggle_platform_connection(self) -> bool:
-        if(self.is_platform_connected == True):
-            if (self.platform is not None):
-                self.platform.disconnect()
-
-            self.is_platform_connected = False
-            self.connect_button.config(text="Connect")
-        else:
-            if (self.platform is not None):
-                self.platform.connect(self.ipaddress.get())
-
-            self.is_platform_connected = True
-            self.connect_button.config(text="Disconnect")
-        return self.is_platform_connected
+    def update_config(self) -> bool:
+        """Update platform model and ipaddress"""
+        # todo
+        self.start.Config.config['PLATFORM']['model'] = self.selected_model.get()
+        self.start.Config.config['PLATFORM']['ip_address'] = self.ipaddress.get()
+        pass
 
     def toggle_platform_enable(self) -> bool:
         if(self.is_platform_enable == True):
@@ -333,18 +350,17 @@ class PlatformSettingFrame(tk.Toplevel):
             self.set_position()
 
     def set_position(self):
-        self.platform.move_to_point_async(self.new_x.get(),
-                                          self.new_y.get(),
-                                          self.new_z.get(),
-                                          self.new_roll.get(),
-                                          self.move_done_handler)
+        self.platform.move_to_point_sync(self.new_x.get(),
+                                         self.new_y.get(),
+                                         self.new_z.get(),
+                                         self.new_roll.get())
 
     def home_position(self):
-        self.new_x.set(350)
-        self.new_y.set(0)
-        self.new_z.set(0)
-        self.new_roll.set(0)
-        self.platform.move_to_point_async(350, 0, 0, 0, self.move_done_handler)
+        self.new_x.set(self.default_x)
+        self.new_y.set(self.default_x)
+        self.new_z.set(self.default_x)
+        self.new_roll.set(self.default_x)
+        self.platform.move_to_point_sync(self.default_x, self.default_y, self.default_z, self.default_roll)
 
     def update_profile(self):
         """
@@ -361,6 +377,9 @@ class PlatformSettingFrame(tk.Toplevel):
 
             # Set the flag to ask the Profile module saves this setting during exit the application
             Profile.flag_save = True
+
+            # reset the platform
+            self.platform.reset()
         except Exception as e:
             traceback.print_exc()
             print("Error during update platform position into profile")
@@ -402,31 +421,30 @@ class PlatformSettingFrame(tk.Toplevel):
         pass
 
     def feedback_handler(self, data):
-        self.actual_x.set(f"{self.platform.x(): .2f}")
-        self.actual_y.set(f"{self.platform.y(): .2f}")
-        self.actual_z.set(f"{self.platform.z(): .2f}")
-        self.actual_roll.set(f"{self.platform.roll(): .2f}")
-        self.platform_mode.set(f"Mode: {self.platform.operating_mode()}")
+        try:
+            self.actual_x.set(f"{self.platform.x(): .2f}")
+            self.actual_y.set(f"{self.platform.y(): .2f}")
+            self.actual_z.set(f"{self.platform.z(): .2f}")
+            self.actual_roll.set(f"{self.platform.roll(): .2f}")
+            self.platform_mode.set(f"Mode: {self.platform.operating_mode()}")
 
-        self.status_text.delete('1.0', tk.END)
-        self.status_text.insert(tk.END, f"{self.platform.get_log()}")
-        self.status_text.see(tk.END)
+            self.status_text.delete('1.0', tk.END)
+            self.status_text.insert(tk.END, f"{self.platform.get_log()}")
+            self.status_text.see(tk.END)
 
-        if(self.platform.is_error()):
-            self.operating_error.set("Error!")
-            self.error_label.config(bg="#ff0000", fg="#ffffff")
-        else:
-            self.operating_error.set("No Error")
-            self.error_label.config(bg="#23ff23", fg="#000000")
+            if(self.platform.is_error()):
+                self.operating_error.set("Error!")
+                self.error_label.config(bg="#ff0000", fg="#ffffff")
+            else:
+                self.operating_error.set("No Error")
+                self.error_label.config(bg="#23ff23", fg="#000000")
 
-        if(self.platform.operating_mode() == "MODE_DISABLED"):
-            self.is_platform_enable = False
-            self.platform_mode_label.config(bg="#ff0000", fg="#ffffff")
-        elif(self.platform.operating_mode() == "MODE_ENABLE"):
-            self.is_platform_enable = True
-            self.platform_mode_label.config(bg="#23ff23", fg="#000000")
+            if(self.platform.operating_mode() == "MODE_DISABLED"):
+                self.is_platform_enable = False
+                self.platform_mode_label.config(bg="#ff0000", fg="#ffffff")
+            elif(self.platform.operating_mode() == "MODE_ENABLE"):
+                self.is_platform_enable = True
+                self.platform_mode_label.config(bg="#23ff23", fg="#000000")
+        except:
+            traceback.print_exc()
         # pass
-
-    def move_done_handler(self):
-        # update Ui movement done
-        pass
