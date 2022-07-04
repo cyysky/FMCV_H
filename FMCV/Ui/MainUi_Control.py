@@ -94,11 +94,12 @@ class ControlFrame(ttk.Frame):
         button_1.pack(side=TOP)
 
         # Platform setting button
-        labelframe_platform = LabelFrame(frm, bd=3, text="Platform")
-        labelframe_platform.pack(fill='x', ipadx=10, ipady=10, padx=5, pady=5)
-        button_platform_setting = Button(labelframe_platform, text="Setting")
-        button_platform_setting.bind("<Button>", lambda e: PlatformSettingFrame(start, start.MainUi.top))
-        button_platform_setting.pack(fill='x', ipadx=5, ipady=5, padx=5, pady=5)
+        if start.Config.platform_model != "NONE":
+            labelframe_platform = LabelFrame(frm, bd=3, text="Platform")
+            labelframe_platform.pack(fill='x', ipadx=10, ipady=10, padx=5, pady=5)
+            button_platform_setting = Button(labelframe_platform, text="Setting")
+            button_platform_setting.bind("<Button>", lambda e: PlatformSettingFrame(start, start.MainUi.top))
+            button_platform_setting.pack(fill='x', ipadx=5, ipady=5, padx=5, pady=5)
         
         #Open new window
         #button_1 = Button(frm, text ="New Window", command = start.ActionUi.go_next)

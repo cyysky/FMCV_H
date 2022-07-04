@@ -76,6 +76,13 @@ def detect(step=None,SN=""):
     global cycle_start_time
     global last_overall_state, continuous_overall_fail_count, continuous_roi_fail_count
     
+    global platform_non_stop
+    
+    if start.Config.non_stop  == "Y" and start.Config.platform_model != "NONE":
+        platform_non_stop = True
+    else:
+        platform_non_stop = False
+    
     if current_step == 0:
         cycle_start_time =  time.time()
 
@@ -102,6 +109,8 @@ def detect(step=None,SN=""):
     move_platform_to_position(current_step)
 
     detect_next_results = start_detect(step)
+   
+    
     print(f"detect_next_results {detect_next_results}")
     
     if detect_next_results and step is None:
@@ -119,6 +128,8 @@ def next_step():
     global flag_reset
     global self
     global barcode
+    
+    global platform_non_stop
 
     if flag_reset:
         print("reseting steps")
@@ -151,9 +162,13 @@ def next_step():
         
         barcode = ""
         self.MainUi.barcode_entry.delete(0, 'end')
-
-
+        
+        platform_non_stop = False
+    
     print("current_step {}".format(current_step))
+    
+    if platform_non_stop:
+        detect()
         
 def reset():
     global current_step, results, result_frame, barcode, started, flag_reset
@@ -201,6 +216,8 @@ def start_detect(step=None):
     
     start.MainUi.result_frame.set_running()
     
+    time.sleep(0.350)
+    frames = self.Camera.get_image()
     frames = self.Camera.get_image()
     
     is_pass = True
@@ -286,13 +303,15 @@ def init_moving_platform():
     print("Initialize moving platform")
     try:
         # Create instance for moving platform and its current position
-        start.MovingPlatform = start.Platform.platform_factory(model=start.Config.config['PLATFORM']['model'], feedback_callback=moving_platform_status_feedback_handler)
+        start.MovingPlatform = start.Platform.platform_factory(model=start.Config.config['PLATFORM']['model'], feedback_callback=None)
+        #start.MovingPlatform = start.Platform.platform_factory(model=start.Config.config['PLATFORM']['model'], feedback_callback=moving_platform_status_feedback_handler)
         self.current_platform_position = start.CartesianPosition()
 
         # start the auto connect/reconnect thread
-        self.is_platform_start = True
-        self.moving_platform_auto_connect_thread = Thread(target=moving_platform_auto_connect_task, daemon=True)
-        self.moving_platform_auto_connect_thread.start()
+        if(start.MovingPlatform is not None):
+            self.is_platform_start = True
+            self.moving_platform_auto_connect_thread = Thread(target=moving_platform_auto_connect_task, daemon=True)
+            self.moving_platform_auto_connect_thread.start()
     except:
         print(f"Initialize moving platform {start.Config.config['PLATFORM']['model']} failed")
         traceback.print_exc()
@@ -357,8 +376,10 @@ def move_platform_to_position(step_index):
         z = self.platform_position['z']
         roll = self.platform_position['roll']
 
-        if (self.MovingPlatform.get_is_connected() == True):
-            self.MovingPlatform.move_to_point_sync(x, y, z, roll)
+        if (self.MovingPlatform is not None):
+            if (self.MovingPlatform.get_is_connected() == True):
+                self.MovingPlatform.move_to_point_sync(x, y, z, roll)
 
     except Exception as e:
+        traceback.print_exc()
         print("Error during reset platform position")

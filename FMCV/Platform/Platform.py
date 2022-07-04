@@ -53,7 +53,9 @@ class Platform:
     @staticmethod
     def platform_factory(model="", feedback_callback=None):
         """This static factory method will create and return the instance of input model"""
-        if (model == "Dobot.MG400"):
+        if (model == "NONE"):
+            return None
+        elif (model == "Dobot.MG400"):
             return Dobot.MG400(feedback_callback)
         elif (model == "Jaka.MiniCobot"):
             #TODO: return Jaka.MiniCobot(feedback_callback)

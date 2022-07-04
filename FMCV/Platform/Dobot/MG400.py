@@ -52,9 +52,13 @@ class MG400(PlatformInterface):
 
 
         #self.move_sync_condition = Condition()
+        
+        self.running = False
+
 
         self.complete_callback = None
 
+        self.feedback_callback = None
         if(feedback_callback is not None):
             self.feedback_callback = feedback_callback
 
@@ -178,16 +182,20 @@ class MG400(PlatformInterface):
     def move_to_point_sync(self, x=0, y=0, z=0, roll=0):
         # do the works here
         #self.move_sync_condition.acquire()
-        try:
-
-            self.client_move.MovJ(float(x),
-                                  float(y),
-                                  float(z),
-                                  float(roll))
-
+        try:          
+            print("Send position to Dobot")
+            self.client_move.MovJ(float(x), float(y), float(z), float(roll))
+            self.running = True
             # block here until operating mode switch from running to enabled
             #print("block for operation finish")
-            time.sleep(2)
+            #time.sleep(2)
+            self.client_move.Sync()
+            
+            while self.running:
+                print("Dobot Running...")
+                time.sleep(0.1)
+                # pass
+            
             #self.move_sync_condition.wait(timeout=5)
             #print("Run finish")
         except Exception as e:
@@ -204,8 +212,8 @@ class MG400(PlatformInterface):
         alarm_dict = {}
         for i in alarm_list:
             alarm_dict[i["id"]] = i
-        return alarm_dict
-
+        return alarm_dict        
+    
     def feedback(self):
         try:
             hasRead = 0
@@ -213,7 +221,7 @@ class MG400(PlatformInterface):
                 if not self.is_connected:
                     #print("Stop feedback thread")
                     break
-
+                    
                 data = bytes()
                 while hasRead < 1440:
                     temp = self.client_feed.socket_dobot.recv(1440 - hasRead)
@@ -231,7 +239,7 @@ class MG400(PlatformInterface):
                     # print('q_actual', np.around(a['q_actual'], decimals=4))
 
                     # Refresh Properties
-                    self.speec_scaling = a["speed_scaling"][0]
+                    self.speed_scaling = a["speed_scaling"][0]
                     self.mode = self.MODE_LOOKUP[a["robot_mode"][0]]
 
                     self.di_input = bin(a["digital_input_bits"][0])[2:].rjust(64, '0')
@@ -252,10 +260,15 @@ class MG400(PlatformInterface):
                     else:
                         self.text_log = ""
                         self.is_error_occur = False
+                        
+                    # running 
+                    self.running = (a["robot_mode"] == 7)
+                     
+                       
 
                     if ((self.prev_mode_number == 7) and (a["robot_mode"][0] != 7)):
                         # robot is just finish "running"
-
+                        self.running = False
                         #self.move_sync_condition.acquire()
                         #print("finish running")
                         #self.move_sync_condition.notify()
@@ -268,6 +281,7 @@ class MG400(PlatformInterface):
                 feedback_data = {}
                 if((self.feedback_callback is not None) and (self.is_connected)):
                     self.feedback_callback(feedback_data)
+                    pass
 
                 time.sleep(0.005)
         except:

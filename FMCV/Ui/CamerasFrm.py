@@ -79,6 +79,7 @@ class CamerasFrame(ttk.Frame):
             
             try : 
                 is_pass = True
+                color = 'red'
                 if n <= (len(S.Main.results) - 1):
                     for roi_n, roi in enumerate(S.Main.results[n][S.MainUi.cmb_pos]):
                         roi_pass = roi.get('PASS')

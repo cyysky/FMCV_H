@@ -18,6 +18,7 @@ def print_config():
     global tester_id
     global version
     global mes_connect_type,mes_connect_path
+    global platform_model
 
     comport = config['CONTROL']['comport']
     modbus_ip = config['CONTROL']['modbus_ip']
@@ -139,7 +140,7 @@ except:
     config['CAMERA']['name'] = "Camera"
 
     config.add_section("PLATFORM")
-    config['PLATFORM']['model'] = "Dobot.MG400"
+    config['PLATFORM']['model'] = "NONE"
     config['PLATFORM']['ip_address'] = "192.168.1.6"
     
     config.add_section('MODE')

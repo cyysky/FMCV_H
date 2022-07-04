@@ -122,7 +122,7 @@ def init(s):
     m4.add(result_frame, weight=12)
 
     bottom_frame = ttk.PanedWindow(m2, orient=HORIZONTAL)
-    platform_control_frame = LabelFrame(bottom_frame, text="Platform Control", height=30)
+    platform_control_frame = LabelFrame(bottom_frame, text="Platform Control")
     bottom_frame.add(platform_control_frame, weight=1)
     platform_control_frame.columnconfigure(0, weight=1)
     platform_control_frame.columnconfigure(1, weight=1)
@@ -141,9 +141,10 @@ def init(s):
     self.platform_reset_button.grid(row=0, column=3, padx=5, pady=5, sticky='ew')
 
 
-    m2.add(m3, weight=1)
-    m2.add(m4, weight=1)
-    m2.add(bottom_frame, weight=1)
+    m2.add(m3, weight=10)
+    m2.add(m4, weight=10)
+    if start.Config.platform_model != "NONE":
+        m2.add(bottom_frame, weight=1)
     
     paned_left.add(cf, weight = 10)
     paned_left.add(frm_cams, weight = 7)

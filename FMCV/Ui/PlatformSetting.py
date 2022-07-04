@@ -25,6 +25,11 @@ class PlatformSettingFrame(tk.Toplevel):
         self.default_y = 0
         self.default_z = 0
         self.default_roll = 0
+        
+        self.actual_x = self.default_x
+        self.actual_y = self.default_y
+        self.actual_z = self.default_z
+        self.actual_roll = self.default_roll
 
         self.is_closed = False
         self.platform = None
@@ -40,6 +45,9 @@ class PlatformSettingFrame(tk.Toplevel):
             #print(dir(start.MovingPlatform.feedback_callback))
 
         self.create_widget(start, self)
+        #self.transient(master)
+        self.grab_set()
+        #master.wait_window(self)
 
         # load profile step
         self.load_step()
@@ -218,6 +226,10 @@ class PlatformSettingFrame(tk.Toplevel):
         self.new_y_label.grid(row=2, column=1, padx=5, pady=5, sticky=tk.E+tk.W)
         self.new_z_label.grid(row=2, column=2, padx=5, pady=5, sticky=tk.E+tk.W)
         self.new_roll_label.grid(row=2, column=3, padx=5, pady=5, sticky=tk.E+tk.W)
+        self.new_x_label.bind('<Return>', self.set_position)
+        self.new_y_label.bind('<Return>', self.set_position)
+        self.new_z_label.bind('<Return>', self.set_position)
+        self.new_roll_label.bind('<Return>', self.set_position)
         self.new_x.set(self.default_x)
         self.new_y.set(self.default_y)
         self.new_z.set(self.default_z)
@@ -263,8 +275,10 @@ class PlatformSettingFrame(tk.Toplevel):
         if tk.messagebox.askokcancel("Quit", "Exit Platform Position Setting?"):
 
             # return to original feedback
-            if (self.original_feedback is not None):
-                self.platform.feedback_callback = self.original_feedback
+            #if (self.original_feedback is not None):
+            #    self.platform.feedback_callback = self.original_feedback
+            self.platform.feedback_callback = None
+                
 
             self.destroy()
         pass
@@ -349,18 +363,18 @@ class PlatformSettingFrame(tk.Toplevel):
         if (self.is_platform_connected):
             self.set_position()
 
-    def set_position(self):
-        self.platform.move_to_point_sync(self.new_x.get(),
-                                         self.new_y.get(),
-                                         self.new_z.get(),
-                                         self.new_roll.get())
+    def set_position(self, *args):
+        self.platform.move_to_point_async(self.new_x.get(),
+                                          self.new_y.get(),
+                                          self.new_z.get(),
+                                          self.new_roll.get())
 
     def home_position(self):
         self.new_x.set(self.default_x)
-        self.new_y.set(self.default_x)
-        self.new_z.set(self.default_x)
-        self.new_roll.set(self.default_x)
-        self.platform.move_to_point_sync(self.default_x, self.default_y, self.default_z, self.default_roll)
+        self.new_y.set(self.default_y)
+        self.new_z.set(self.default_z)
+        self.new_roll.set(self.default_roll)
+        self.platform.move_to_point_async(self.default_x, self.default_y, self.default_z, self.default_roll)
 
     def update_profile(self):
         """
