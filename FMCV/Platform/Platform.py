@@ -1,4 +1,4 @@
-import FMCV.Platform.Dobot as Dobot
+#import FMCV.Platform.Dobot as Dobot
 #import Jaka
 import functools
 
@@ -56,7 +56,8 @@ class Platform:
         if (model == "NONE"):
             return None
         elif (model == "Dobot.MG400"):
-            return Dobot.MG400(feedback_callback)
+            import FMCV.Platform.Dobot.MG400 as MG400
+            return MG400.MG400(feedback_callback)
         elif (model == "Jaka.MiniCobot"):
             #TODO: return Jaka.MiniCobot(feedback_callback)
             return None

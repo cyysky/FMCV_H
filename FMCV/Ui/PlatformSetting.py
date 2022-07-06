@@ -3,7 +3,7 @@ from tkinter import ttk
 from FMCV.Ui.ScrollableFrm  import ScrollableFrame
 from FMCV.Platform.Platform import Platform
 from FMCV.Ui.ImageViewFrm import ImageView
-from FMCV.Ui import MainUi
+#from FMCV.Ui import MainUi
 from FMCV import Profile
 import json
 import traceback
@@ -277,8 +277,10 @@ class PlatformSettingFrame(tk.Toplevel):
             # return to original feedback
             #if (self.original_feedback is not None):
             #    self.platform.feedback_callback = self.original_feedback
-            self.platform.feedback_callback = None
-                
+            try: #capture exception when platform is not available that prevent closing
+                self.platform.feedback_callback = None
+            except:
+                traceback.print_exc() 
 
             self.destroy()
         pass
@@ -287,7 +289,7 @@ class PlatformSettingFrame(tk.Toplevel):
         try:
             step_list = []
             #print(f"profile: {Profile.loaded_profile[0]}")
-            for index, step in enumerate(Profile.loaded_profile[MainUi.cam_pos]):
+            for index, step in enumerate(Profile.loaded_profile[self.start.MainUi.cam_pos]):
                 #print(f"step: {step['platform']}")
                 step_list.append(index + 1)
 
@@ -384,10 +386,10 @@ class PlatformSettingFrame(tk.Toplevel):
             w = self.profile_listbox
             step_index = int(w.curselection()[0])
 
-            Profile.loaded_profile[MainUi.cam_pos][step_index]["platform"]["x"] = float(self.new_x.get())
-            Profile.loaded_profile[MainUi.cam_pos][step_index]["platform"]["y"] = float(self.new_y.get())
-            Profile.loaded_profile[MainUi.cam_pos][step_index]["platform"]["z"] = float(self.new_z.get())
-            Profile.loaded_profile[MainUi.cam_pos][step_index]["platform"]["roll"] = float(self.new_roll.get())
+            Profile.loaded_profile[self.start.MainUi.cam_pos][step_index]["platform"]["x"] = float(self.new_x.get())
+            Profile.loaded_profile[self.start.MainUi.cam_pos][step_index]["platform"]["y"] = float(self.new_y.get())
+            Profile.loaded_profile[self.start.MainUi.cam_pos][step_index]["platform"]["z"] = float(self.new_z.get())
+            Profile.loaded_profile[self.start.MainUi.cam_pos][step_index]["platform"]["roll"] = float(self.new_roll.get())
 
             # Set the flag to ask the Profile module saves this setting during exit the application
             Profile.flag_save = True
@@ -409,7 +411,7 @@ class PlatformSettingFrame(tk.Toplevel):
             step_index = int(w.curselection()[0])
 
             # get selected position from profile
-            self.current_platform_position = Profile.loaded_profile[MainUi.cam_pos][step_index]["platform"]
+            self.current_platform_position = Profile.loaded_profile[self.start.MainUi.cam_pos][step_index]["platform"]
             print(f"Position: {self.current_platform_position}")
 
             self.new_x.set(self.current_platform_position['x'])

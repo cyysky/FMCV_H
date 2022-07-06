@@ -12,6 +12,11 @@ import glob
 from os.path import join, isfile
 from shutil import copytree
 from pathlib import Path
+import shutil
+
+
+
+import traceback
 
 def distutils_dir_name(dname):
     """Returns the name of a distutils build directory"""
@@ -23,9 +28,18 @@ def distutils_dir_name(dname):
 print(sys.version)
 
 # ignore any files but files with '.py' extension
-ignore_func = lambda d, files: [f for f in files if (Path(d) / Path(f)).is_file() and f.endswith('.py') and not f.endswith('Camera.py')]
+ignore_func = lambda d, files: [f for f in files if (Path(d) / Path(f)).is_file() 
+                                                    and f.endswith('.py') 
+                                                    and not f.endswith('Camera.py') 
+                                                    and not f.startswith('__init__')]
 copytree("FMCV", os.path.join("build",distutils_dir_name('lib'),"FMCV"), ignore=ignore_func, dirs_exist_ok=True)
-
+try:
+    shutil.copyfile("start.bat", os.path.join("build",distutils_dir_name('lib'),"start.bat"))
+    shutil.copyfile("start.py", os.path.join("build",distutils_dir_name('lib'),"start.py"))
+    shutil.copyfile("License", os.path.join("build",distutils_dir_name('lib'),"License"))
+except:
+    traceback.print_exc()
+    
 from distutils.dir_util import copy_tree
 #copy_tree("/a/b/c", "/x/y/z")
 
@@ -49,13 +63,26 @@ for filename in os.listdir(os.path.join(os.getcwd(),module)):
         extensions.append(eval(command))
 
 
-submodules = ['Ai','Ui','Camera','Comm','Processor','Logger']#['tools','hci','sys']#["cameras","io"]
+submodules = ['Ai','Ui','Camera','Comm','Processor','Logger','Platform']#['tools','hci','sys']#["cameras","io"]
 for obj in submodules:
     for filename in os.listdir(os.path.join(os.getcwd(),module,obj)):
         if filename.endswith(".py"): 
             command = "Extension(\"{0}.{1}.{2}\", [r\"{3}\"])".format(module,obj,os.path.splitext(filename)[0],os.path.join(current_path,module,obj,filename))
             print(command)
             extensions.append(eval(command))
+
+
+sub_submodules = ['Dobot']
+for sub in ['Platform']:
+    for obj in sub_submodules:
+        try:
+            for filename in os.listdir(os.path.join(os.getcwd(),module,sub,obj)):
+                if filename.endswith(".py") and not filename.startswith("__init__"): 
+                    command = "Extension(\"{0}.{1}.{2}.{3}\", [r\"{4}\"])".format(module,sub,obj,os.path.splitext(filename)[0],os.path.join(current_path,module,sub,obj,filename))
+                    print(command)
+                    extensions.append(eval(command))
+        except:
+            traceback.print_exc()
 
 for file_path in glob.glob(os.path.join(os.getcwd(),module, '**', '*.html'), recursive=True):
     new_path = os.path.join(os.path.basename(file_path))

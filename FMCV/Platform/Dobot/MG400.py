@@ -189,7 +189,7 @@ class MG400(PlatformInterface):
             # block here until operating mode switch from running to enabled
             #print("block for operation finish")
             #time.sleep(2)
-            self.client_move.Sync()
+            #self.client_move.Sync()
             
             while self.running:
                 print("Dobot Running...")
