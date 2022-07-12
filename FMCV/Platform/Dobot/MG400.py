@@ -197,7 +197,7 @@ class MG400(PlatformInterface):
                 # pass
             
             #self.move_sync_condition.wait(timeout=5)
-            #print("Run finish")
+            print("Run finish")
         except Exception as e:
             traceback.print_exc()
             print(f"move_to_point_sync() exception: {e}")

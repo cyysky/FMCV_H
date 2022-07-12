@@ -155,7 +155,6 @@ def init(s):
     top.protocol("WM_DELETE_WINDOW", on_closing)
     top.bind('<Escape>',lambda v: on_closing())
     top.bind("<Configure>", configure_event)
-    top.bind()
     top.bind('<Return>',barcode_entry_handler)
 
 def barcode_entry_handler(*args):
@@ -198,19 +197,22 @@ def Lbl_callback(event):
 def configure_event(event):
     #https://stackoverflow.com/questions/61712329/tkinter-track-window-resize-specifically
     global window_width, window_height
-    if event.widget == top:
-        if (window_width != event.width) and (window_height != event.height):
-            window_width, window_height = event.width,event.height
-            print(f"The width of Toplevel is {window_width} and the height of Toplevel "
-                  f"is {window_height}")
-                  
-    self.MainUi_Refresh.refresh_edit_roi_rectangle()
-    
-    if top.state() == 'zoomed':
-        #print("My window is maximized")
-        pass
-    if top.state() == 'normal':
-        #print("My window is normal")
+    try:
+        if event.widget == top:
+            if (window_width != event.width) and (window_height != event.height):
+                window_width, window_height = event.width,event.height
+                print(f"The width of Toplevel is {window_width} and the height of Toplevel "
+                      f"is {window_height}")
+                      
+        self.MainUi_Refresh.refresh_edit_roi_rectangle()
+        
+        if top.state() == 'zoomed':
+            #print("My window is maximized")
+            pass
+        if top.state() == 'normal':
+            #print("My window is normal")
+            pass
+    except:
         pass
         
 def update_source(frames):
