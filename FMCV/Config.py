@@ -4,7 +4,7 @@ import os
 from pathlib import Path
 import json
 
-version = "20220604"
+version = "20220712"
 
 def init(s):
     global self

@@ -286,6 +286,7 @@ def start_detect(step=None):
  
 def reset_total_count():
     start.Config.class_total.update({"PASS":0,"FAIL":0})
+    start.Config.write_total()
     
 def update_total():
     total_pass = start.Config.class_total.get("PASS")
