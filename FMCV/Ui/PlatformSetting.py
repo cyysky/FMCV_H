@@ -458,9 +458,11 @@ class PlatformSettingFrame(tk.Toplevel):
             if(self.platform.operating_mode() == "MODE_DISABLED"):
                 self.is_platform_enable = False
                 self.platform_mode_label.config(bg="#ff0000", fg="#ffffff")
+                self.enable_button.config(text="Enable Platform")
             elif(self.platform.operating_mode() == "MODE_ENABLE"):
                 self.is_platform_enable = True
                 self.platform_mode_label.config(bg="#23ff23", fg="#000000")
+                self.enable_button.config(text="Disable Platform")
         except:
             traceback.print_exc()
         # pass
