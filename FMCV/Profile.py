@@ -81,7 +81,7 @@ def write():
             for roi_n, roi in enumerate(step["roi"]):
                 #print(self.Util.without_keys(roi,{"img"})) #debug use
                 profile[src_n][step_n]["roi"].append(start.Util.without_keys(roi,{"img"}))
-                #if roi.get('img') is not None:
+                #if roi.get('img') is not None: # moved to UI
                 #    profile[src_n][step_n][roi_n].update({"image":base64.b64encode(cv2.imencode('.png',roi['img'])[1]).decode()})
                 
     file_name = start.Util.utc_to_local(datetime.utcnow()).strftime('%Y-%m-%d_%H%M%S_%f')[:-3] + "_profile.json"
@@ -109,20 +109,31 @@ def load():
             # # extract platform param
             # loaded_profile[src_n][step_n] = step["platform"]
             loaded_profile[src_n][step_n] = {}
-            loaded_profile[src_n][step_n]["platform"] = step["platform"]
-            loaded_profile[src_n][step_n]["roi"] = []
-            for roi_n, roi in enumerate(step["roi"]):
-                # each step include platform position and multiple ROIs
-                loaded_profile[src_n][step_n]["roi"].append(roi)
-                #print(json.dumps(roi, indent=4))
-                if roi.get('image') is not None:
-                    loaded_profile[src_n][step_n]["roi"][roi_n].update({"img":cv2.imdecode(np.frombuffer(base64.b64decode(roi["image"]), dtype=np.uint8),flags=cv2.IMREAD_COLOR)})
+            
+            if isinstance(step, list):# post platform profile compatible 
+                loaded_profile[src_n][step_n]["platform"] = {"x": 350, "y": 0, "z": 0, "roll": 0}
+                loaded_profile[src_n][step_n]["roi"] = []
+                
+                for roi_n, roi in enumerate(step): 
+                    loaded_profile[src_n][step_n]["roi"].append(roi)
+                    if roi.get('image') is not None:
+                        loaded_profile[src_n][step_n]["roi"][roi_n].update({"img":cv2.imdecode(np.frombuffer(base64.b64decode(roi["image"]), dtype=np.uint8),flags=cv2.IMREAD_COLOR)})
+
+            if isinstance(step, dict): # new profile structures
+                loaded_profile[src_n][step_n]["platform"] = step["platform"]
+                loaded_profile[src_n][step_n]["roi"] = []
+                for roi_n, roi in enumerate(step["roi"]):
+                    # each step include platform position and multiple ROIs
+                    loaded_profile[src_n][step_n]["roi"].append(roi)
+                    #print(json.dumps(roi, indent=4))
+                    if roi.get('image') is not None:
+                        loaded_profile[src_n][step_n]["roi"][roi_n].update({"img":cv2.imdecode(np.frombuffer(base64.b64decode(roi["image"]), dtype=np.uint8),flags=cv2.IMREAD_COLOR)})
 
 def add_source(src_n):
     print(src_n)
     global loaded_profile
     loaded_profile.insert(src_n + 1, [])
-    loaded_profile[src_n + 1].append([])
+    loaded_profile[src_n + 1].append({"platform": {"x": 350, "y": 0, "z": 0, "roll": 0}, "roi": []})
     
 def remove_source(src_n):
     global loaded_profile
