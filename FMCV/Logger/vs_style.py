@@ -44,31 +44,30 @@ def write_log():
                     for roi_n, roi_result in enumerate(results[src_n][step_n]):                    
                         counter+= 1
                         
-                        file_log.write("V{}={}".format(counter,src_n+1))
-                        file_log.write(",")
-                        file_log.write("{}".format(step_n+1))
-                        file_log.write(",")
-                        file_log.write("{}".format(roi_result["name"]))
-                        file_log.write(",")
-                        file_log.write("{}".format(roi_result.get("type")))
-                        file_log.write(",")
+                        file_log.write("V{}={}|".format(counter,src_n+1))
+                        counter+= 1
+                        file_log.write("V{}={}|".format(counter,step_n+1))
+                        counter+= 1
+                        file_log.write("V{}={}|".format(counter,roi_result["name"]))
+                        counter+= 1
+                        file_log.write("V{}={}|".format(counter,roi_result.get("type")))
+                        counter+= 1
                         if roi_result.get("PASS"):
                             state = "PASS"
                         else:
                             state = "FAIL"
-                        file_log.write("{}".format(state))
-                        file_log.write(",")
+                        file_log.write("V{}={}|".format(counter,state))
+                        counter+= 1
                         if roi_result.get("type") == "CNN":
-                            file_log.write("{}".format(roi_result.get("result_class")))
-                            file_log.write(",")
-                            file_log.write("{}".format(roi_result.get("result_score")))
+                            file_log.write("V{}={}|".format(counter,roi_result.get("result_class")))
+                            counter+= 1
+                            file_log.write("V{}={:0.5f}|".format(counter,roi_result.get("result_score")))
                         if roi_result.get("type") == "QR":
-                            file_log.write("{}".format(roi_result.get("CODE")))
-                        file_log.write("|")
+                            file_log.write("V{}={}|".format(counter,roi_result.get("CODE")))
             
             log_date = current_datetime.strftime("%d/%m/%Y") #https://www.w3schools.com/python/python_datetime.asp
             log_time = current_datetime.strftime("%H:%M:%S") #https://www.w3schools.com/python/python_datetime.asp
-            file_log.write("DATE={}|TIME={}".format(log_date,log_time))
+            file_log.write("DAT={}|ZEI={}".format(log_date,log_time))
 
     
     if str(images_path) != '.':

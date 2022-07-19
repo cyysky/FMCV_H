@@ -51,7 +51,7 @@ class VsMesThread(threading.Thread):
             self.mes_path = path = self.parent.start.Config.mes_connect_path
             os.makedirs(path, exist_ok=True)
             my_observer = Observer()
-            my_observer.schedule(my_event_handler, path, recursive=True)
+            my_observer.schedule(my_event_handler, path, recursive=False)
             my_observer.start()
             while True:
                 time.sleep(1)
